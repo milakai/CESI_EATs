@@ -1,9 +1,20 @@
 // getting-started.js
 
-
+// Importer mongoose
 const mongoose = require('mongoose');
+// Importer Express
+const express= require('express');
 
-main().catch(err => console.log(err));
+// Créer une nouvelle application Express
+const app=express();
+
+// for parsing application/json
+app.use(express.json()); 
+
+// mettre port 3000 en état LISTEN
+app.listen(3000, () => {
+  console.log('Application started and listening on port 3000');
+});
 
 async function main() {
   // await mongoose.connect('mongodb://127.0.0.1:27017/test');     //test your requests locally
@@ -14,52 +25,84 @@ async function main() {
   const password = encodeURIComponent('12345');
 
   // Connexion à la BDD MongoDB
-  await mongoose.connect(`mongodb+srv://${username}:${password}@db0cluster0.scxfepc.mongodb.net/test_Nike?retryWrites=true&w=majority`);
-  
-  //return res.status(200).json({sensor: sensors[sensorIndex], message: 'Connection success'});
-  
+  await mongoose.connect(`mongodb+srv://${username}:${password}@db0cluster0.scxfepc.mongodb.net/test_Nike?retryWrites=true&w=majority`); 
 }
+main().catch(err => console.log(err));
 
-// Schema creation
+// Menu schema creation 
 const menuSchema = new mongoose.Schema({
   prix_M: Number,
   articles: String
 });
-
-// Adding a functionality
-// NOTE: methods must be added to the schema before compiling it with mongoose.model()
-menuSchema.methods.speak = function speak() {
-  const greeting = this.name
-    ? 'Les articles ' + this.name
-    : 'sont';
-  console.log(greeting);
-};
-
+  
+// Article schema creation
+const articleSchema = new mongoose.Schema({
+  article: String,
+  nom: String,
+  prix: Number
+});
+    
 // Compiling schema into model
 const Menus = mongoose.model('Menus', menuSchema);
+const Articles= mongoose.model('Articles', articleSchema);
 
-// Creating document from class that exist within models
-const menu1 = new Menus({ prix_M: 23, articles: 'Orangina'});
-console.log(menu1.articles, menu1.prix_M); // 'Silence'
+// Ecrire sur la BDD
+app.post('/GestionAM', async (req, res) => {
+	console.log(req.body)
 
-// New kitten called fluffy
-const menu2 = new Menus({ prix_M: 10, articles: 'Frites'});
-menu2.speak(); // "Meow name is fluffy"
+  // // Adding a functionality
+  // // NOTE: methods must be added to the schema before compiling it with mongoose.model()
+  // menuSchema.methods.speak = function speak() {
+  //   const greeting = this.name
+  //     ? 'Les articles ' + this.name
+  //     : 'sont';
+  //   console.log(greeting);
+  // };
 
-// After the main function has completed, perform some asynchronous operations
-main().then(async () => {
-  // Save the fluffy document to the database
+	// Vérifiez si un capteur avec le même ID existe déjà
+	// const existingSensor=sensors.find(sensor=>sensor.id === newSensor.id);
+	// if (existingSensor){
+	// 	return res.status(400).json({message: 'Sensor with this ID already exists'});
+	// }
+
+	// New article called article1, then save
+  const article1 = new Articles({ article:'Boisson', nom: 'Fanta', prix: 1});
+  await article1.save();
+
+  // New menu called menu1, then save
+  const menu1 = new Menus({ prix_M: 10, articles: 'Frites'});
   await menu1.save();
-  await menu2.save();
 
-  // Call the speak method on the fluffy document again
-  menu1.speak();
-  menu2.speak();
+  // menu1.speak(); // "Use speak() to display name of menu2 in console"
+  console.log(menu1.articles, menu1.prix_M); // 'Les articles 10 sont Frites' in console
 
+  // After the main function has completed, perform some asynchronous operations
+  // main().then(async () => {
+  //   // Save the fluffy document to the database
+  //   await menu1.save();
+
+  //   // Call the speak method on the fluffy document again
+  //   menu1.speak();
+
+  // }).catch(err => console.log(err));      // Catch and log any errors
+  
+// Envoyer ok POST  
+  return res.sendStatus(201);
+});
+
+// Check Database to see if write is OK
+app.get('/GestionAM', async (req, res) => {
+	// Fetch all Menus
+  const menus = await Menus.find();
+  res.json(menus);
+  
+  
   // Find all documents in the Kitten collection and log them
-  const Menus_plusieurs = await Menus.find();
-  console.log(Menus_plusieurs);
+  // main().then(async () =>{
+  //   const Menus_plusieurs = await menu1.find();
+  // }).catch(err2 =>console.log(err2));
+  // console.log(Menus_plusieurs);
 
-  // Find all documents in the Kitten collection where the name starts with 'fluff'
-  // await Kitten.find({ name: /^fluff/ });
-}).catch(err => console.log(err));      // Catch and log any errors
+  // // Find all documents in the Kitten collection where the name starts with 'fluff'
+  // // await Kitten.find({ name: /^fluff/ });
+});
