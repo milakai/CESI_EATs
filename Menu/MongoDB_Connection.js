@@ -10,10 +10,11 @@ const app=express();
 
 // for parsing application/json
 app.use(express.json()); 
+const port=3000;
 
 // mettre port 3000 en état LISTEN
-app.listen(3000, () => {
-  console.log('Application started and listening on port 3000');
+app.listen(port, () => {
+  console.log('Application started and listening on port', port);
 });
 
 async function main() {
@@ -32,22 +33,24 @@ main().catch(err => console.log(err));
 // Menu schema creation 
 const menuSchema = new mongoose.Schema({
   prix_M: Number,
-  articles: String
+  articles: String,
+  nomMenu: String
 });
   
 // Article schema creation
 const articleSchema = new mongoose.Schema({
   article: String,
   nom: String,
-  prix: Number
+  prix: Number,
+  quantite: Number
 });
     
 // Compiling schema into model
 const Menus = mongoose.model('Menus', menuSchema);
 const Articles= mongoose.model('Articles', articleSchema);
 
-// Ecrire sur la BDD
-app.post('/GestionAM', async (req, res) => {
+// Route pour ajouter un article à la BDD
+app.post('/AjouterArticle', async (req, res) => {
 	console.log(req.body)
 
   // // Adding a functionality
@@ -59,50 +62,127 @@ app.post('/GestionAM', async (req, res) => {
   //   console.log(greeting);
   // };
 
-	// Vérifiez si un capteur avec le même ID existe déjà
-	// const existingSensor=sensors.find(sensor=>sensor.id === newSensor.id);
-	// if (existingSensor){
-	// 	return res.status(400).json({message: 'Sensor with this ID already exists'});
-	// }
+  try{
+    // Vérifier si un article avec l'ID spécifié existe déjà
+    const article1 = await Articles.findOne( req.body._id );
+    // console.log('Id menu est:', existingMenu.idMenu)                      // debug
+  
+    // Si un menu avec cet ID existe déjà, renvoyer une erreur
+    if (article1) {
+      return res.status(400).send('A menu with this ID already exists.');
+    }
+  } catch(error){
+    console.error(error);
+    res.sendStatus(400).send('This article already exists. Please increase its quantity.');
+  }
 
-	// New article called article1, then save
-  const article1 = new Articles({ article:'Boisson', nom: 'Fanta', prix: 1});
+	// New article called article1, then save to DB
+  const article1 = new Articles({ article: req.body.article, nom: req.body.nom, prix: req.body.prix, quantite: req.body.quantite});
   await article1.save();
 
-  // New menu called menu1, then save
-  const menu1 = new Menus({ prix_M: 10, articles: 'Frites'});
-  await menu1.save();
-
-  // menu1.speak(); // "Use speak() to display name of menu2 in console"
-  console.log(menu1.articles, menu1.prix_M); // 'Les articles 10 sont Frites' in console
-
-  // After the main function has completed, perform some asynchronous operations
-  // main().then(async () => {
-  //   // Save the fluffy document to the database
-  //   await menu1.save();
-
-  //   // Call the speak method on the fluffy document again
-  //   menu1.speak();
-
-  // }).catch(err => console.log(err));      // Catch and log any errors
+  // Display article1 in console
+  console.log(article1.article, article1.nom, article1.prix, article1.quantite); 
   
-// Envoyer ok POST  
+  // Envoyer ok POST  
   return res.sendStatus(201);
 });
 
+// Route pour ajouter un menu à la BDD
+app.post('/AjouterMenu', async (req, res) => {
+  console.log(req.body)
+
+  // Vérifier si un menu avec le nom spécifié existe déjà
+  const existingMenu = await Menus.findOne( { nomMenu: req.body.nomMenu} );
+  console.log('Nom du menu est:', existingMenu?.nomMenu)                      // debug
+
+  // Si un menu avec ce nom existe déjà, renvoyer une erreur
+  if (existingMenu) {
+    return res.status(400).send('A menu with this ID already exists.');
+  }
+
+  // Si aucun menu avec cet ID n'est trouvé, créer et enregistrer le nouveau menu
+  const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu });
+  await menu1.save();
+
+  // Affichage élèments du Menu dans la console
+  console.log(menu1.articles, menu1.prix_M, menu1.nomMenu);
+
+  // Envoyer ok POST  
+  return res.status(201).send(menu1);
+});
+
+
+// Route pour modifier un élément du menu
+app.put('/menu', async (req, res) => {
+  try {
+    const update = {
+      prix_M: req.body.prix_M,
+      articles: req.body.articles
+    };
+
+    const menuMod = await Menus.findOneAndUpdate(
+      {nomMenu: req.body.nomMenu},          // Utiliser le nom du Menu envoyé dans le corps de la requête
+      update,                             // Utiliser les données envoyées dans le corps de la requête
+      { new: true, runValidators: true } // Renvoyer le document mis à jour et exécuter les validateurs de schéma
+    );
+
+
+    // Si le menu avec l'ID spécifié n'est pas trouvé, renvoyer une erreur
+    if (!menuMod) {
+      return res.status(404).send('Menu item with the given ID was not found.');
+    }
+
+    // Renvoyer le menu mis à jour
+    res.send({menuMod});
+  } catch (error) {
+    console.error(error)
+    // En cas d'erreur (par exemple, une validation échouée), renvoyer une erreur 400
+    res.status(400).send(error);
+  }
+});
+
 // Check Database to see if write is OK
-app.get('/GestionAM', async (req, res) => {
+app.get('/AfficherAM', async (req, res) => {
 	// Fetch all Menus
   const menus = await Menus.find();
+  const articles = await Articles.find();
   res.json(menus);
-  
-  
-  // Find all documents in the Kitten collection and log them
-  // main().then(async () =>{
-  //   const Menus_plusieurs = await menu1.find();
-  // }).catch(err2 =>console.log(err2));
-  // console.log(Menus_plusieurs);
+});
 
-  // // Find all documents in the Kitten collection where the name starts with 'fluff'
-  // // await Kitten.find({ name: /^fluff/ });
+// Route to delete a menu
+app.delete('/menu', async (req, res) => {
+  try {
+    const menuDel = await Menus.findOneAndRemove({nomMenu: req.body.nomMenu});
+    
+    // If the menu item with the specified Menu name is not found, return an error
+    if (!menuDel) {
+      return res.status(404).send('Menu item with the given ID was not found.');
+    }
+
+    // Return a success message
+    res.send({ message: 'Menu item successfully deleted' });
+  } catch (error) {
+    console.error(error)
+    // In case of an error, send a 400 error
+    res.status(400).send(error);
+  }
+});
+
+// Route to delete an articles item; TODO: Check under which circumstances this route might be used
+app.delete('/Articles', async (req, res) => {
+  try {
+    const articlesDel = await Articles.findByIdAndDelete(req.body._id);
+    
+    // If the menu item with the specified ID is not found, return an error
+    if (!articlesDel) {
+      return res.status(404).send('Articles item with the given ID was not found.');
+    }
+
+    // Return a success message
+    res.send({ message: "Articles item successfully deleted" });
+  } catch (error) {
+    console.error(error)
+    // In case of an error, send a 400 error
+    res.status(400).send(error);
+  }
 });
