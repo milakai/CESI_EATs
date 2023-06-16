@@ -1,5 +1,5 @@
 *\node_modules
 \defaultvuejs
-myapp/*
-!myapp/index.js
+\myapp\*
+!\myapp/index.js
 
