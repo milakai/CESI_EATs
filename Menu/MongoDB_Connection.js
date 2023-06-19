@@ -141,6 +141,38 @@ app.put('/menu', async (req, res) => {
   }
 });
 
+// Route pour modifier un élément d'article
+// TODO: tester - OK
+app.put('/article', async (req, res) => {
+  try {
+    const update = {
+      prix: req.body.prix,
+      article: req.body.article,
+      nom: req.body.nom,
+      quantite: req.body.quantite
+    };
+
+    const articleMod = await Articles.findOneAndUpdate(
+      {nom: req.body.nom},          // Utiliser le nom du Menu envoyé dans le corps de la requête
+      update,                             // Utiliser les données envoyées dans le corps de la requête
+      { new: true, runValidators: true } // Renvoyer le document mis à jour et exécuter les validateurs de schéma
+    );
+
+
+    // Si le menu avec l'ID spécifié n'est pas trouvé, renvoyer une erreur
+    if (!articleMod) {
+      return res.status(404).send('Article item with the given ID was not found.');
+    }
+
+    // Renvoyer l'article mis à jour
+    res.send({articleMod});
+  } catch (error) {
+    console.error(error)
+    // En cas d'erreur (par exemple, une validation échouée), renvoyer une erreur 400
+    res.status(400).send(error);
+  }
+});
+
 // Check Database to see if write is OK
 app.get('/AfficherAM', async (req, res) => {
 	// Fetch all Menus
@@ -148,6 +180,14 @@ app.get('/AfficherAM', async (req, res) => {
   const articles = await Articles.find();
   res.json(menus);
 });
+
+// // Check Database to see if write is OK        // Convertir en .get pour articles
+// app.get('/AfficherAM', async (req, res) => {
+// 	// Fetch all Menus
+//   const menus = await Menus.find();
+//   const articles = await Articles.find();
+//   res.json(menus);
+// });
 
 // Route to delete a menu
 app.delete('/menu', async (req, res) => {
@@ -169,13 +209,13 @@ app.delete('/menu', async (req, res) => {
 });
 
 // Route to delete an articles item; TODO: Check under which circumstances this route might be used
-app.delete('/Articles', async (req, res) => {
+app.delete('/article', async (req, res) => {
   try {
-    const articlesDel = await Articles.findByIdAndDelete(req.body._id);
+    const articlesDel = await Articles.findOneAndDelete({nom: req.body.nom});
     
-    // If the menu item with the specified ID is not found, return an error
+    // If the menu item with the specified name is not found, return an error
     if (!articlesDel) {
-      return res.status(404).send('Articles item with the given ID was not found.');
+      return res.status(404).send('Articles item with the given name was not found.');
     }
 
     // Return a success message
