@@ -33,8 +33,9 @@ main().catch(err => console.log(err));
 // Menu schema creation 
 const menuSchema = new mongoose.Schema({
   prix_M: Number,
-  articles: String,
-  nomMenu: String
+  articles: [String],
+  nomMenu: String,
+  restaurant: String
 });
   
 // Article schema creation
@@ -68,7 +69,7 @@ app.post('/AjouterArticle', async (req, res) => {
     // console.log('Id menu est:', existingMenu.idMenu)                      // debug
   
     // Si un menu avec cet ID existe déjà, renvoyer une erreur
-    if (article1) {
+    if (!article1) {
       return res.status(400).send('A menu with this ID already exists.');
     }
   } catch(error){
@@ -87,29 +88,46 @@ app.post('/AjouterArticle', async (req, res) => {
   return res.sendStatus(201);
 });
 
+
 // Route pour ajouter un menu à la BDD
 app.post('/AjouterMenu', async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
 
   // Vérifier si un menu avec le nom spécifié existe déjà
   const existingMenu = await Menus.findOne( { nomMenu: req.body.nomMenu} );
-  console.log('Nom du menu est:', existingMenu?.nomMenu)                      // debug
+  console.log('Nom du menu est:', existingMenu?.nomMenu);                      // debug
 
   // Si un menu avec ce nom existe déjà, renvoyer une erreur
   if (existingMenu) {
-    return res.status(400).send('A menu with this ID already exists.');
+    return res.status(409).send('A menu with this name already exists.');
   }
 
+  // Vérifier si l'article existe dans la table des articles
+  const existingArticle = await Articles.findOne({ nom: req.body.articles });
+  
+  if (!existingArticle) {
+    return res.status(404).send('The article does not exist, please add it.');
+  }
+
+  // Vérifier si l'article existe déjà dans le menu
+  const articleInMenu = existingMenu?.articles.find(article => article === req.body.articles);
+
+  if (articleInMenu) {
+    return res.status(409).send('The article is already added in the menu, please increase its quantity.');
+  }
+
+
   // Si aucun menu avec cet ID n'est trouvé, créer et enregistrer le nouveau menu
-  const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu });
-  await menu1.save();
+  const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu, restaurant: req.body.restaurant });
+  await menu1.save();                                   //besoin que les articles soient du type liste
 
   // Affichage élèments du Menu dans la console
-  console.log(menu1.articles, menu1.prix_M, menu1.nomMenu);
+  console.log(menu1.articles, menu1.prix_M, menu1.nomMenu, menu1.restaurant);
 
   // Envoyer ok POST  
   return res.status(201).send(menu1);
 });
+
 
 
 // Route pour modifier un élément du menu
@@ -117,7 +135,8 @@ app.put('/menu', async (req, res) => {
   try {
     const update = {
       prix_M: req.body.prix_M,
-      articles: req.body.articles
+      articles: req.body.articles,
+      restaurant: req.body.restaurant
     };
 
     const menuMod = await Menus.findOneAndUpdate(
@@ -127,7 +146,7 @@ app.put('/menu', async (req, res) => {
     );
 
 
-    // Si le menu avec l'ID spécifié n'est pas trouvé, renvoyer une erreur
+    // Si le menu avec le nom spécifié n'est pas trouvé, renvoyer une erreur
     if (!menuMod) {
       return res.status(404).send('Menu item with the given ID was not found.');
     }
@@ -174,20 +193,18 @@ app.put('/article', async (req, res) => {
 });
 
 // Check Database to see if write is OK
-app.get('/AfficherAM', async (req, res) => {
+app.get('/AfficherMenu', async (req, res) => {
 	// Fetch all Menus
   const menus = await Menus.find();
-  const articles = await Articles.find();
   res.json(menus);
 });
 
-// // Check Database to see if write is OK        // Convertir en .get pour articles
-// app.get('/AfficherAM', async (req, res) => {
-// 	// Fetch all Menus
-//   const menus = await Menus.find();
-//   const articles = await Articles.find();
-//   res.json(menus);
-// });
+// Check Database to see if write is OK        
+app.get('/AfficherArticles', async (req, res) => {
+	// Fetch all Articles
+  const articles = await Articles.find();
+  res.json(articles);
+});
 
 // Route to delete a menu
 app.delete('/menu', async (req, res) => {
@@ -196,11 +213,11 @@ app.delete('/menu', async (req, res) => {
     
     // If the menu item with the specified Menu name is not found, return an error
     if (!menuDel) {
-      return res.status(404).send('Menu item with the given ID was not found.');
+      return res.status(404).send('Menu with the given name was not found.');
     }
 
     // Return a success message
-    res.send({ message: 'Menu item successfully deleted' });
+    res.send({ message: 'Menu successfully deleted' });
   } catch (error) {
     console.error(error)
     // In case of an error, send a 400 error
