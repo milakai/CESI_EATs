@@ -5,11 +5,24 @@ const mongoose = require('mongoose');
 // Importer Express
 const express= require('express');
 
+// const cors= require('cors');
+
 // Créer une nouvelle application Express
-const app=express();
+ const app=express();
+
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
+//app.use(cors());
 
 // for parsing application/json
 app.use(express.json()); 
+
+
 const port=3000;
 
 // mettre port 3000 en état LISTEN
@@ -148,7 +161,7 @@ app.put('/menu', async (req, res) => {
 
     // Si le menu avec le nom spécifié n'est pas trouvé, renvoyer une erreur
     if (!menuMod) {
-      return res.status(404).send('Menu item with the given ID was not found.');
+      return res.status(404).send('Menu item with the given name was not found.');
     }
 
     // Renvoyer le menu mis à jour
@@ -208,6 +221,7 @@ app.get('/AfficherArticles', async (req, res) => {
 
 // Route to delete a menu
 app.delete('/menu', async (req, res) => {
+  console.log(req.body);
   try {
     const menuDel = await Menus.findOneAndRemove({nomMenu: req.body.nomMenu});
     
