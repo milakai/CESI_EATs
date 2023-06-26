@@ -64,7 +64,7 @@ export default {
   },
   methods: {
     getRestaurantsAndMenus() {
-      axios.get('http://localhost:3001/AfficherAM')
+      axios.get('http://localhost:3003/AfficherAM')
         .then(response => {
           this.menus = response.data.map(menu => ({
             ...menu,
@@ -88,7 +88,7 @@ export default {
     },
 
     getMenus() {
-      axios.get(`http://localhost:3001/AfficherAM?restaurant=${this.selectedRestaurant}`)
+      axios.get(`http://localhost:3003/AfficherAM?restaurant=${this.selectedRestaurant}`)
         .then(response => {
           this.menus = response.data.map(menu => ({
             ...menu,
