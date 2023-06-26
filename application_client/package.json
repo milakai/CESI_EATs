@@ -1,5 +1,5 @@
 {
-  "name": "auth-vue",
+  "name": "application_client",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -18,7 +18,21 @@
     "vue": "^3.2.13",
     "vue-class-component": "^8.0.0-0",
     "vue-router": "^4.0.3",
-    "vuex": "^4.1.0"
+    "vuex": "^4.1.0",
+    "@types/axios": "^0.14.0",
+    "assert": "^2.0.0",
+    "async_hooks": "^1.0.0",
+    "browserify-zlib": "^0.2.0",
+    "https-browserify": "^1.0.0",
+    "i": "^0.3.7",
+    "mongoose": "^7.2.4",
+    "net": "^1.0.2",
+    "npm": "^9.7.1",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "querystring-es3": "^0.2.1",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

@@ -109,6 +109,9 @@
       async fetchProfile() {
         try {
           const accessToken = localStorage.getItem('authToken');
+          if(accessToken==null){
+            this.$router.push("/");
+          }
           const token = accessToken.replace("Bearer ",'');
           const response = await axios.get('http://localhost:3001/profile', {
             headers: {
