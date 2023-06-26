@@ -1,5 +1,5 @@
 <template>
-  <div class="create-order">
+  <div class="create-order home">
     <h2>Créer une nouvelle commande</h2>
     <form @submit.prevent="createOrder" class="order-form">
       <!-- Form inputs -->
@@ -7,95 +7,41 @@
         <label for="customer-name">Nom du client :</label>
         <input type="text" id="customer-name" v-model="customerName" required>
       </div>
+      <div class="restaurant-grid">
+        <label>Restaurant :</label>
+        <div v-for="restaurant in restaurants" :key="restaurant._id" class="restaurant-option">
+          <input type="radio" :id="restaurant._id" :value="restaurant.restaurant" v-model="selectedRestaurant" @change="getMenus">
+          <label :for="restaurant._id">{{ restaurant.restaurant }}</label>
+        </div>
+      </div>
+      <div v-for="menu in filteredMenus" :key="menu._id">
+        <label>{{ menu.nomMenu }} ({{ menu.prix_M }}€)</label>
+        <div class="quantity-controls">
+          <button type="button" @click="decrementQuantity(menu)">-</button>
+          <input type="number" v-model.number="menu.quantity" min="0" @input="calculateTotalPrice">
+          <button type="button" @click="incrementQuantity(menu)">+</button>
+        </div>
+      </div>
       <div>
         <label for="total-price">Prix total :</label>
-        <input type="number" id="total-price" v-model="totalPrice" required>
+        <input type="number" id="total-price" v-model="totalPrice" readonly>
       </div>
-      <div>
-        <label for="items">Articles :</label>
-        <textarea id="items" v-model="items" required></textarea>
-      </div>
-      <button type="submit">Créer la commande</button>
+      <button type="submit" :disabled="totalPrice === 0" class="category-card-action">Créer la commande</button>
     </form>
-
-    <!-- Order details section -->
-    <div v-if="loading" class="loading">Création en cours...</div>
-    <div v-else>
-      <div v-if="error" class="error">Erreur : {{ error }}</div>
-      <div v-else-if="order" class="order-details">
-        <p>Commande créée avec succès !</p>
-        <p class="order-id">Identifiant de la commande : {{ order.orderId }}</p>
-        <p>Nom du client : {{ order.customerName }}</p>
-        <p>Prix total : {{ order.totalPrice }}</p>
-        <p>Articles :</p>
-        <ul>
-          <li v-for="item in order.items" :key="item">{{ item }}</li>
-        </ul>
-      </div>
+    <div v-if="orderCreated" class="order-details">
+      <h3>Détails de la commande</h3>
+      <p>Identifiant de la commande : {{ orderId }}</p>
+      <p>Nom du client : {{ customerName }}</p>
+      <p>Commande :</p>
+      <ul>
+        <li v-for="menu in orderedMenus" :key="menu._id">
+          {{ menu.nomMenu }} ({{ menu.prix_M }}€) - Quantité : {{ menu.quantity }}
+        </li>
+      </ul>
+      <p>Prix total : {{ totalPrice }}€</p>
     </div>
   </div>
 </template>
-
-<style>
-.create-order {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.order-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.order-form label {
-  font-weight: bold;
-}
-
-.order-form input,
-.order-form textarea {
-  padding: 5px;
-  border: 1px solid #ccc;
-}
-
-.order-form button {
-  padding: 8px 15px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-.loading {
-  font-style: italic;
-}
-
-.error {
-  color: red;
-}
-
-.order-details {
-  background-color: #f5f5f5;
-  padding: 10px;
-  border: 1px solid #ccc;
-}
-
-.order-id {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.order-details ul {
-  list-style-type: none;
-  padding-left: 0;
-}
-
-.order-details li {
-  margin-bottom: 5px;
-}
-</style>
 
 <script>
 import axios from 'axios';
@@ -103,50 +49,216 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      loading: false,
-      error: null,
-      order: null,
       customerName: '',
-      totalPrice: '',
-      items: '',
+      selectedRestaurant: '',
+      restaurants: [],
+      menus: [],
+      totalPrice: 0,
+      orderCreated: false,
+      orderId: '',
     };
   },
+
+  created() {
+    this.getRestaurantsAndMenus();
+  },
   methods: {
-    createOrder() {
-      this.loading = true;
-      this.error = null;
-      this.order = null;
+    getRestaurantsAndMenus() {
+      axios.get('http://localhost:3001/AfficherAM')
+        .then(response => {
+          this.menus = response.data.map(menu => ({
+            ...menu,
+            quantity: 0,
+          }));
 
-      // Validate input data
-      if (!this.customerName || !this.totalPrice || !this.items) {
-        this.error = 'Veuillez remplir tous les champs.';
-        this.loading = false;
-        return;
+          // Utiliser Set pour supprimer les doublons
+          const uniqueRestaurants = Array.from(new Set(this.menus.map(menu => menu.restaurant)))
+            .map(restaurant => {
+              return {
+                restaurant,
+                _id: restaurant, // utiliser le nom du restaurant comme ID unique
+              };
+            });
+
+          this.restaurants = uniqueRestaurants;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+
+    getMenus() {
+      axios.get(`http://localhost:3001/AfficherAM?restaurant=${this.selectedRestaurant}`)
+        .then(response => {
+          this.menus = response.data.map(menu => ({
+            ...menu,
+            quantity: 0,
+          }));
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+
+    incrementQuantity(menu) {
+      menu.quantity++;
+      this.calculateTotalPrice();
+    },
+
+    decrementQuantity(menu) {
+      if (menu.quantity > 0) {
+        menu.quantity--;
+        this.calculateTotalPrice();
       }
+    },
 
-      // Split items string into an array
-      const itemsArray = this.items.split('\n').filter(item => item.trim() !== '');
+    calculateTotalPrice() {
+      this.totalPrice = this.filteredMenus.reduce((total, menu) => total + menu.prix_M * menu.quantity, 0);
+    },
 
-      // Create the new order object
+    createOrder() {
+      const orderedMenus = this.filteredMenus.filter(menu => menu.quantity > 0);
+
       const newOrder = {
         customerName: this.customerName,
-        totalPrice: parseFloat(this.totalPrice),
-        items: itemsArray,
+        restaurant: this.selectedRestaurant,
+        items: orderedMenus.map(menu => ({
+          id: menu._id,
+          name: menu.nomMenu,
+          price: menu.prix_M,
+          quantity: menu.quantity,
+        })),
+        totalPrice: this.totalPrice,
       };
 
-      // Send the create order request
-      axios.post('http://localhost:3000/orders', newOrder)
-        .then((response) => {
-          this.order = response.data;
-          this.order.orderId = this.order._id; // Assign orderId to _id
+      axios
+        .post('http://localhost:3000/orders', newOrder)
+        .then(response => {
+          console.log(response.data);
+          this.orderCreated = true;
+          this.orderId = response.data._id;
+          this.orderedMenus = orderedMenus;
         })
-        .catch((error) => {
-          this.error = error.message;
-        })
-        .finally(() => {
-          this.loading = false;
+        .catch(error => {
+          console.error(error);
         });
+    },
+  },
+  computed: {
+    filteredMenus() {
+      return this.menus.filter(menu => menu.restaurant === this.selectedRestaurant);
+    },
+    orderedMenus() {
+      return this.filteredMenus.filter(menu => menu.quantity > 0);
     },
   },
 };
 </script>
+
+<style scoped>
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1em;
+}
+
+.restaurant-option {
+  display: flex;
+  align-items: center;
+}
+
+.restaurant-option input[type="radio"] {
+  margin-right: 1em;
+}
+
+.home {
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.hero {
+  background-color: #f2f2f2;
+  padding: 50px 0;
+  text-align: center;
+}
+
+.hero-title {
+  font-size: 2.5em;
+  margin-bottom: 0.5em;
+}
+
+.hero-subtitle {
+  font-size: 1.5em;
+  color: #666;
+}
+
+.categories {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin: 50px 0;
+}
+
+.category-card {
+  width: 200px;
+  height: 200px;
+  margin: 20px;
+  background-color: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.category-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.category-card-content {
+  text-align: center;
+}
+
+.category-card-title {
+  margin-bottom: 1em;
+}
+
+.category-card-action {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-card-action:hover {
+  background-color: #666;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background-color: #f2f2f2;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.quantity-controls input {
+  width: 50px;
+  height: 30px;
+  border: 1px solid #ccc;
+  margin: 0 5px;
+  text-align: center;
+}
+</style>
