@@ -108,7 +108,7 @@ export default {
       this.error = null;
       this.order = null;
 
-      axios.get(`http://localhost:3000/orders/${this.orderId}`)
+      axios.get(`http://localhost:3005/orders/${this.orderId}`)
         .then((response) => {
           this.order = response.data;
           this.$store.commit('setOrderToModify', this.order); // Stocke les données de la commande dans le store

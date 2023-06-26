@@ -68,7 +68,7 @@ export default {
       // Supposons que vous le passiez en tant que paramètre de route.
       const orderId = this.$route.params.orderId;
 
-      axios.get(`http://localhost:3000/orders/${orderId}`)
+      axios.get(`http://localhost:3005/orders/${orderId}`)
         .then(response => {
           const order = response.data;
           this.orderId = order._id;
@@ -130,7 +130,7 @@ export default {
       };
 
       axios
-        .put(`http://localhost:3000/orders/${this.orderId}`, updatedOrder)
+        .put(`http://localhost:3005/orders/${this.orderId}`, updatedOrder)
         .then(response => {
           console.log(response.data);
           this.successMessage = 'La commande a été modifiée avec succès.';
