@@ -1,5 +1,7 @@
 import { createStore } from 'vuex';
 
+
+
 interface Order {
   orderId: string;
   customerName: string;
