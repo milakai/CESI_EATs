@@ -132,7 +132,7 @@ export default {
       };
 
       axios
-        .post('http://localhost:3000/orders', newOrder)
+        .post('http://localhost:3005/orders', newOrder)
         .then(response => {
           console.log(response.data);
           this.orderCreated = true;
