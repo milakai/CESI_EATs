@@ -86,7 +86,7 @@ export default {
     },
     getMenuItems() {
       axios
-      .get(`http://localhost:3001/AfficherAM?restaurant=${this.selectedRestaurant}`)
+      .get(`http://localhost:3003/AfficherAM?restaurant=${this.selectedRestaurant}`)
       .then(response => {
         this.restaurants = response.data.map(menu => ({
           ...menu,
