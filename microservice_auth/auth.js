@@ -31,7 +31,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 // SQL Server configuration
 const sqlConfig = {
   user: 'sa',
-  password: 'Cesi_EATpwd!',
+  password: 'Cesi_EATpwd!', 
   server: 'localhost',
   database: 'CESI_EAT',
   options: {
