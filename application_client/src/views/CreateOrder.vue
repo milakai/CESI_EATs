@@ -3,10 +3,10 @@
     <h2>Créer une nouvelle commande</h2>
     <form @submit.prevent="createOrder" class="order-form">
       <!-- Form inputs -->
-      <div>
+      <!-- <div>
         <label for="customer-name">Nom du client :</label>
         <input type="text" id="customer-name" v-model="customerName" required>
-      </div>
+      </div> -->
       <div class="restaurant-grid">
         <label>Restaurant :</label>
         <div v-for="restaurant in restaurants" :key="restaurant._id" class="restaurant-option">
@@ -118,8 +118,12 @@ export default {
 
     createOrder() {
       const orderedMenus = this.filteredMenus.filter(menu => menu.quantity > 0);
+      const accessToken = localStorage.getItem('authToken');
+      const token = accessToken.replace("Bearer ",'');
+      // console.log(this.customerName)
 
       const newOrder = {
+        token : token,
         customerName: this.customerName,
         restaurant: this.selectedRestaurant,
         items: orderedMenus.map(menu => ({
@@ -130,18 +134,24 @@ export default {
         })),
         totalPrice: this.totalPrice,
       };
-
+      
       axios
-        .post('http://localhost:3005/orders', newOrder)
-        .then(response => {
-          console.log(response.data);
-          this.orderCreated = true;
-          this.orderId = response.data._id;
-          this.orderedMenus = orderedMenus;
-        })
-        .catch(error => {
-          console.error(error);
-        });
+    .post('http://localhost:3005/orders', newOrder, {
+      headers: {
+        Authorization: token
+      }
+    })
+    .then(response => {
+      console.log(response.data.customerName);
+      this.customerName = response.data.customerName;
+      this.orderCreated = true;
+      this.orderId = response.data._id;
+      this.orderedMenus = orderedMenus;
+    })
+    .catch(error => {
+      console.error(error);
+    });
+
     },
   },
   computed: {
