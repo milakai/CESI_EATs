@@ -7,6 +7,7 @@
         <label for="customer-name">Nom du client :</label>
         <input type="text" id="customer-name" v-model="customerName" required>
       </div> -->
+      <div v-if="error" class="error">{{ error }}</div>
       <div class="restaurant-grid">
         <label>Restaurant :</label>
         <div v-for="restaurant in restaurants" :key="restaurant._id" class="restaurant-option">
@@ -56,6 +57,7 @@ export default {
       totalPrice: 0,
       orderCreated: false,
       orderId: '',
+      error: '',
     };
   },
 
@@ -64,6 +66,8 @@ export default {
   },
   methods: {
     getRestaurantsAndMenus() {
+
+
       axios.get('http://localhost:3003/AfficherAM')
         .then(response => {
           this.menus = response.data.map(menu => ({
@@ -119,7 +123,12 @@ export default {
     createOrder() {
       const orderedMenus = this.filteredMenus.filter(menu => menu.quantity > 0);
       const accessToken = localStorage.getItem('authToken');
+      if (!accessToken) {
+        this.error = 'Please log in to order.';
+        return; // stop execution of the method
+      }
       const token = accessToken.replace("Bearer ",'');
+
       // console.log(this.customerName)
 
       const newOrder = {
