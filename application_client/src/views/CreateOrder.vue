@@ -198,7 +198,19 @@ filteredMenus() {
 }
 
 .create-order button {
-  margin-bottom: 10px;
+  background-color: #f8f9fa; /* Couleur de fond claire */
+  color: #333; /* Couleur de texte sombre */
+  border: 1px solid #ced4da; /* Bordure discrète */
+  padding: 10px 20px; /* Espace intérieur pour le rendre plus grand */
+  font-size: 1em; /* Taille de police standard */
+  border-radius: 5px; /* Coins arrondis */
+  cursor: pointer; /* Change le curseur lorsqu'il survole le bouton */
+  text-decoration: none; /* Supprime le soulignement */
+  transition: background-color 0.3s ease; /* Animation douce lors du survol */
+}
+
+.create-order button:hover {
+  background-color: #e9ecef; /* Couleur de fond légèrement plus foncée lors du survol */
 }
 
 .create-order label {
@@ -209,6 +221,7 @@ filteredMenus() {
 .create-order .quantity-controls {
   display: flex;
   align-items: center;
+  justify-content: center; /* Ajouté pour centrer horizontalement */
 }
 
 .create-order .quantity-controls button {
@@ -221,6 +234,8 @@ filteredMenus() {
   background-color: #f2f2f2;
   cursor: pointer;
   font-weight: bold;
+  color: #333;
+  font-size: 1.2em;
 }
 
 .create-order .quantity-controls input {
@@ -229,6 +244,13 @@ filteredMenus() {
   border: 1px solid #ccc;
   margin: 0 5px;
   text-align: center;
+}
+.create-order p {
+  font-size: 1.5em; /* Augmente la taille de la police */
+  color: #333; /* Change la couleur du texte */
+  font-weight: bold; /* Rend le texte en gras */
+  text-align: center; /* Centre le texte */
+  margin-top: 20px; /* Ajoute de l'espace au-dessus du texte */
 }
 
 .create-order .order-details {
