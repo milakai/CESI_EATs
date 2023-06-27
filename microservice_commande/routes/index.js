@@ -38,7 +38,7 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
     },
     status: {
       type: String,
-      default: "En route"
+      default: "En attente"
     },
     // Autres propriétés du modèle de commande
   });
