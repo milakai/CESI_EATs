@@ -1,4 +1,5 @@
 <template>
+  <div v-if="error" class="error">{{ error }}</div>
   <div class="create-order">
     <h2>Créer une nouvelle commande</h2>
     <button @click="goBack">Revenir en arrière</button>
