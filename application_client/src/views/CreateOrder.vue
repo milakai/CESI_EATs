@@ -120,10 +120,11 @@ export default {
       const orderedMenus = this.filteredMenus.filter(menu => menu.quantity > 0);
       const accessToken = localStorage.getItem('authToken');
       const token = accessToken.replace("Bearer ",'');
+      // console.log(this.customerName)
 
       const newOrder = {
         token : token,
-        // customerName: this.customerName,
+        customerName: this.customerName,
         restaurant: this.selectedRestaurant,
         items: orderedMenus.map(menu => ({
           id: menu._id,
@@ -141,7 +142,8 @@ export default {
       }
     })
     .then(response => {
-      console.log(response.data);
+      console.log(response.data.customerName);
+      this.customerName = response.data.customerName;
       this.orderCreated = true;
       this.orderId = response.data._id;
       this.orderedMenus = orderedMenus;
