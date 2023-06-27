@@ -31,7 +31,7 @@ Mop
 // SQL Server configuration
 const sqlConfig = {
   user: 'sa',
-  password: 'Cesi_EATpwd!',
+  password: 'Jjeeaann23',
   server: 'localhost',
   database: 'CESI_EAT',
   options: {
@@ -41,6 +41,7 @@ const sqlConfig = {
     enableIdentityInsert: true
   }
 };
+
 
 // Connect to SQL Server  
 const connectSqlServerDB = async () => {

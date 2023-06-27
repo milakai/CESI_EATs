@@ -1,14 +1,16 @@
 <template>
   <div class="home">
     <header class="hero">
-      <h1 class="hero-title">Bienvenue sur EatsCesi</h1>
+      <h1 class="hero-title">Bienvenue sur CesiEats</h1>
       <p class="hero-subtitle">Profitez de la cuisine locale directement chez vous</p>
     </header>
-    <section class="categories">
-      <div v-for="category in categories" :key="category" class="category-card">
-        <div class="category-card-content">
-          <h3 class="category-card-title">{{ category }}</h3>
-          <button class="category-card-action">Explorer</button>
+    <section class="restaurants">
+      <div v-for="restaurant in restaurants" :key="restaurant.restaurant" @click="exploreRestaurant(restaurant)">
+        <div class="restaurant-card">
+          <div class="restaurant-card-content">
+            <h3 class="restaurant-card-title">{{ restaurant.restaurant }}</h3>
+            <button class="restaurant-card-action">Explorer</button>
+          </div>
         </div>
       </div>
     </section>
@@ -16,13 +18,41 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
-      categories: ['Pizza', 'Sushi', 'Burger', 'Cuisine mexicaine', 'Végétarien', 'Desserts']
-    }
-  }
-}
+      restaurants: [],
+    };
+  },
+  created() {
+    this.getRestaurants();
+  },
+  methods: {
+    async exploreRestaurant(restaurant) {
+  await this.$store.dispatch('exploreRestaurant', restaurant.restaurant);
+  this.$router.push({ name: 'CreateOrder', params: { restaurant: restaurant.restaurant } });
+},
+
+
+getRestaurants() {
+  axios
+    .get('http://localhost:3003/AfficherAM')
+    .then(response => {
+      const restaurantSet = new Set(response.data.map(menu => menu.restaurant));
+      this.restaurants = Array.from(restaurantSet).map(restaurant => ({
+        _id: restaurant,
+        restaurant,
+      }));
+    })
+    .catch(error => {
+      console.error(error);
+    });
+},
+
+  },
+};
 </script>
 
 <style scoped>
@@ -47,14 +77,14 @@ export default {
   color: #666;
 }
 
-.categories {
+.restaurants {
   display: flex;
   justify-content: space-around;
   flex-wrap: wrap;
   margin: 50px 0;
 }
 
-.category-card {
+.restaurant-card {
   width: 200px;
   height: 200px;
   margin: 20px;
@@ -62,24 +92,24 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
-.category-card:hover {
+.restaurant-card:hover {
   transform: scale(1.05);
-  box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.category-card-content {
+.restaurant-card-content {
   text-align: center;
 }
 
-.category-card-title {
+.restaurant-card-title {
   margin-bottom: 1em;
 }
 
-.category-card-action {
+.restaurant-card-action {
   background-color: #333;
   color: #fff;
   padding: 10px 20px;
@@ -88,7 +118,7 @@ export default {
   transition: all 0.3s ease;
 }
 
-.category-card-action:hover {
+.restaurant-card-action:hover {
   background-color: #666;
 }
 </style>
