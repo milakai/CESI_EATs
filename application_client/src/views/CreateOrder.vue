@@ -50,6 +50,7 @@ export default {
       totalPrice: 0,
       orderCreated: false,
       orderId: '',
+      error: '',
     };
   },
   mounted() {
@@ -122,7 +123,12 @@ export default {
     createOrder() {
       const orderedMenus = this.filteredMenus.filter(menu => menu.quantity > 0);
       const accessToken = localStorage.getItem('authToken');
-      const token = accessToken.replace("Bearer ", '');
+      if (!accessToken) {
+        this.error = 'Please log in to order.';
+        return; // stop execution of the method
+      }
+      const token = accessToken.replace("Bearer ",'');
+
       // console.log(this.customerName)
 
       const newOrder = {

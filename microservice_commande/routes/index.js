@@ -19,6 +19,7 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
   });
 
   const orderSchema = new mongoose.Schema({
+    
    /* orderId: {
       type: String,
       required: true
@@ -43,6 +44,10 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
       type: String,
       default: "En attente"
     },
+    driverId: {
+      type: String,
+      ref: 'Driver' // assuming you have a Driver model
+    }
     // Autres propriétés du modèle de commande
   });
   
@@ -77,10 +82,15 @@ app.put('/orders/:orderId', updateOrderHandler);
 app.delete('/orders/:orderId', deleteOrderHandler);
 
 // Gestionnaire pour la mise à jour du statut d'une commande
+// app.patch('/orders/:orderId/status', updateOrderStatusHandler);
+
 app.patch('/orders/:orderId/status', updateOrderStatusHandler);
 
 // Gestionnaire pour récupérer les détails d'une commande
 app.get('/orders/:orderId', getOrderDetailsHandler);
+
+app.get('/orders', getAllOrders);
+
 
 // Gestionnaire par défaut pour les routes non trouvées
 app.use((req, res) => {
@@ -132,6 +142,7 @@ async function createOrderHandler(req, res) {
     });
 }
 
+
 // Gestionnaire pour la mise à jour du statut d'une commande
 function updateOrderStatusHandler(req, res) {
   const orderId = req.params.orderId;
@@ -157,6 +168,17 @@ function updateOrderStatusHandler(req, res) {
     });
 }
 
+async function getAllOrders(req, res)
+{
+  try {
+    const orders = await Order.find({ status: 'En attente' });
+    res.json(orders);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des commandes en attente', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commandes en attente' });
+  }
+
+}
 // Gestionnaire pour la modification d'une commande
 function updateOrderHandler(req, res) {
   const orderId = req.params.orderId;
@@ -224,6 +246,8 @@ function getOrderDetailsHandler(req, res) {
       res.status(500).json({ message: 'Erreur serveur lors de la récupération des détails de la commande' });
     });
 }
+
+
 
 const port = 3005;
 app.listen(port, () => {
