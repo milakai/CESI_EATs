@@ -47,7 +47,7 @@ export default {
     this.articles = await this.fetchArticles()
     this.menus = await this.fetchMenus()
     // this.orders= await this.fetchOrders()    // TODO: à ajouter lors du merge
-    this.orders= await this.getOrderList()
+    // this.orders= await this.getOrderList()
   },
   methods: {
     // Fetch articles from the server.
@@ -101,7 +101,8 @@ export default {
             nom: article.nom,
             article: article.article,
             prix: article.prix,
-            quantite: article.quantite
+            quantite: article.quantite,
+            restaurant: article.restaurant
           })
         });
 

@@ -7,7 +7,8 @@
           Name: {{ article.nom }} <br/>
           Type: {{ article.article }} <br/>
           Price: {{ article.prix }} <br/>
-          Quantity: {{ article.quantite }}
+          Quantity: {{ article.quantite }} <br/>
+          Restaurant: {{ article.restaurant }}
         </p>
   
         <button @click="remove(article)">Remove</button>
@@ -22,6 +23,7 @@
         <input v-model="newArticle.article" placeholder="Type" />
         <input v-model="newArticle.prix" placeholder="Price" />
         <input v-model="newArticle.quantite" placeholder="Quantity" />
+        <input v-model="newArticle.restaurant" placeholder="Restaurant">
         <button type="submit"> Add Article </button>
       </form>
 
@@ -55,7 +57,8 @@
           nom: '',
           article: '',
           prix: '',
-          quantite: ''
+          quantite: '',
+          restaurant: ''
         },
       articleToUpdate: null,      // New data property for the article to update
       showModal: false       
@@ -64,7 +67,7 @@
     methods: {
       add() {
         this.$emit('add', this.newArticle)
-        this.newArticle = { nom: '', article: '', prix: '', quantite: '' }
+        this.newArticle = { nom: '', article: '', prix: '', quantite: '', restaurant:'' }
       },
       remove(article) {
         this.$emit('remove', article)

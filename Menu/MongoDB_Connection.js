@@ -57,7 +57,8 @@ const articleSchema = new mongoose.Schema({
   article: String,
   nom: String,
   prix: Number,
-  quantite: Number
+  quantite: Number,
+  restaurant: String
 });
     
 // Compiling schema into model
@@ -86,12 +87,13 @@ app.post('/AjouterArticle', async (req, res) => {
     article: req.body.article, 
     nom: req.body.nom, 
     prix: req.body.prix, 
-    quantite: req.body.quantite
+    quantite: req.body.quantite,
+    restaurant: req.body.restaurant
   });
   await article1.save();
 
   // Display article1 in console
-  console.log(article1.article, article1.nom, article1.prix, article1.quantite); 
+  console.log(article1.article, article1.nom, article1.prix, article1.quantite, article1.restaurant); 
   
   // Envoyer ok POST  
   return res.sendStatus(201);
@@ -217,7 +219,8 @@ app.put('/article', async (req, res) => {
       prix: req.body.prix,
       article: req.body.article,
       nom: req.body.nom,
-      quantite: req.body.quantite
+      quantite: req.body.quantite,
+      restaurant: req.body.restaurant
     };
 
     const articleMod = await Articles.findOneAndUpdate(

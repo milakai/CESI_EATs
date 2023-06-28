@@ -10,6 +10,7 @@
       <input v-model="updatedArticle.article" placeholder="Type" />
       <input v-model="updatedArticle.prix" placeholder="Price" />
       <input v-model="updatedArticle.quantite" placeholder="Quantity" />
+      <input v-model="updatedArticle.restaurant" placeholder="Restaurant" />
       <button type="submit">Update Article</button>
     </form>
 
