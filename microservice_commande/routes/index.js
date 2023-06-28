@@ -2,10 +2,13 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
+const { MongoClient } = require('mongodb');
 
 app.use(cors());
 
 const mongodbUrl = 'mongodb+srv://JV:Sbl3Apu1eAY3Qx5F@db0cluster0.scxfepc.mongodb.net/';
+const client = new MongoClient(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 
 mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
@@ -16,6 +19,7 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
   });
 
   const orderSchema = new mongoose.Schema({
+    
    /* orderId: {
       type: String,
       required: true
@@ -38,8 +42,12 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
     },
     status: {
       type: String,
-      default: "En route"
+      default: "En attente"
     },
+    driverId: {
+      type: String,
+      ref: 'Driver' // assuming you have a Driver model
+    }
     // Autres propriétés du modèle de commande
   });
   
@@ -74,10 +82,15 @@ app.put('/orders/:orderId', updateOrderHandler);
 app.delete('/orders/:orderId', deleteOrderHandler);
 
 // Gestionnaire pour la mise à jour du statut d'une commande
+// app.patch('/orders/:orderId/status', updateOrderStatusHandler);
+
 app.patch('/orders/:orderId/status', updateOrderStatusHandler);
 
 // Gestionnaire pour récupérer les détails d'une commande
 app.get('/orders/:orderId', getOrderDetailsHandler);
+
+app.get('/orders', getAllOrders);
+
 
 // Gestionnaire par défaut pour les routes non trouvées
 app.use((req, res) => {
@@ -91,20 +104,31 @@ app.use((err, req, res, next) => {
 });
 
 // Gestionnaire pour la création d'une nouvelle commande
-function createOrderHandler(req, res) {
+async function createOrderHandler(req, res) {
   // Récupérer les données de req.body
-  const { customerName, totalPrice, items } = req.body;
 
+  const { totalPrice, items } = req.body;
+  const token = req.headers.authorization;
+
+  const payload = jwt.decode(token)
+  const userId = payload._id;
   // Valider les données reçues
-  if (!customerName || !totalPrice || !items || !Array.isArray(items) || items.length === 0) {
+  if (!totalPrice || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'Données de commande invalides' });
   }
+  const user = await client.db('CESI_EAT').collection('Users').findOne(
+    { ID: userId },
+    { projection: { firstName: 1 } }
+  );
+  
+  console.log(user.firstName)
 
   // Créer un nouvel objet Order avec les données reçues
   const newOrder = {
-    customerName,
-    totalPrice,
-    items
+    userId:userId,
+    customerName : user.firstName,
+    totalPrice:totalPrice,
+    items:items
   };
 
   // Enregistrer la nouvelle commande dans la base de données
@@ -117,6 +141,7 @@ function createOrderHandler(req, res) {
       res.status(500).json({ message: 'Erreur serveur lors de la création de la commande' });
     });
 }
+
 
 // Gestionnaire pour la mise à jour du statut d'une commande
 function updateOrderStatusHandler(req, res) {
@@ -143,6 +168,17 @@ function updateOrderStatusHandler(req, res) {
     });
 }
 
+async function getAllOrders(req, res)
+{
+  try {
+    const orders = await Order.find({ status: 'En attente' });
+    res.json(orders);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des commandes en attente', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commandes en attente' });
+  }
+
+}
 // Gestionnaire pour la modification d'une commande
 function updateOrderHandler(req, res) {
   const orderId = req.params.orderId;
@@ -211,7 +247,9 @@ function getOrderDetailsHandler(req, res) {
     });
 }
 
-const port = 3000;
+
+
+const port = 3005;
 app.listen(port, () => {
   console.log(`Le serveur Express écoute sur le port ${port}`);
 });

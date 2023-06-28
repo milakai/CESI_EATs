@@ -27,11 +27,10 @@ const logger = winston.createLogger({
 // MongoDB URI
 const uri = "mongodb+srv://Tom:rHiNUmndV0MIzX3t@db0cluster0.scxfepc.mongodb.net/?authMechanism=DEFAULT";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
 // SQL Server configuration
 const sqlConfig = {
   user: 'sa',
-  password: 'Cesi_EATpwd!',
+  password: 'Cesi_EATpwd!', 
   server: 'localhost',
   database: 'CESI_EAT',
   options: {
@@ -41,6 +40,7 @@ const sqlConfig = {
     enableIdentityInsert: true
   }
 };
+
 
 // Connect to SQL Server  
 const connectSqlServerDB = async () => {
