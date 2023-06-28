@@ -104,6 +104,44 @@ app.post('/AjouterArticle', async (req, res) => {
 
 // Route pour ajouter un menu à la BDD
 app.post('/AjouterMenu', async (req, res) => {
+  // console.log(req.body);
+
+  // // Vérifier si un menu avec le nom spécifié existe déjà
+  // const existingMenu = await Menus.findOne( { nomMenu: req.body.nomMenu} );
+  // console.log('Nom du menu est:', existingMenu?.nomMenu);                      // debug
+
+  // // Si un menu avec ce nom existe déjà, renvoyer une erreur
+  // if (existingMenu) {
+  //   return res.status(409).send('A menu with this name already exists.');
+  // }
+
+  // // Vérifier si l'article existe dans la table des articles
+  // // const existingArticle = await Articles.findOne({ nom: req.body.articles });
+  
+  // // if (!existingArticle) {
+  // //   return res.status(404).send('The article does not exist, please add it.');
+  // // }
+  // for (let article of req.body.articles) {
+  //   // Try to find each article in the database.
+  //   const existingArticle = await Articles.findOne({ nom: article.nom });
+  
+  //   // If an article doesn't exist, return an error.
+  //   if (!existingArticle) {
+  //     return res.status(404).send(`The article with name ${article.nom} does not exist, please add it.`);
+  //   }
+  // }
+
+  // // Vérifier si l'article existe déjà dans le menu
+  // const articleInMenu = existingMenu?.articles.find(article => article === req.body.articles);
+
+  // if (articleInMenu) {
+  //   return res.status(409).send('The article is already added in the menu, please increase its quantity.');
+  // }
+
+
+  // // Si aucun menu avec cet ID n'est trouvé, créer et enregistrer le nouveau menu
+  // const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu, restaurant: req.body.restaurant });
+  // await menu1.save();                                   //besoin que les articles soient du type liste
   console.log(req.body);
 
   // Vérifier si un menu avec le nom spécifié existe déjà
@@ -116,10 +154,14 @@ app.post('/AjouterMenu', async (req, res) => {
   }
 
   // Vérifier si l'article existe dans la table des articles
-  const existingArticle = await Articles.findOne({ nom: req.body.articles });
+  for (let articleName of req.body.articles) {
+    // Try to find each article in the database.
+    const existingArticle = await Articles.findOne({ nom: articleName });
   
-  if (!existingArticle) {
-    return res.status(404).send('The article does not exist, please add it.');
+    // If an article doesn't exist, return an error.
+    if (!existingArticle) {
+      return res.status(404).send(`The article with name ${articleName} does not exist, please add it.`);
+    }
   }
 
   // Vérifier si l'article existe déjà dans le menu
@@ -129,11 +171,9 @@ app.post('/AjouterMenu', async (req, res) => {
     return res.status(409).send('The article is already added in the menu, please increase its quantity.');
   }
 
-
   // Si aucun menu avec cet ID n'est trouvé, créer et enregistrer le nouveau menu
   const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu, restaurant: req.body.restaurant });
-  await menu1.save();                                   //besoin que les articles soient du type liste
-
+  await menu1.save(); 
   // Affichage élèments du Menu dans la console
   console.log(menu1.articles, menu1.prix_M, menu1.nomMenu, menu1.restaurant);
 
@@ -191,9 +231,9 @@ app.put('/article', async (req, res) => {
     );
 
 
-    // Si le menu avec l'ID spécifié n'est pas trouvé, renvoyer une erreur
+    // Si le menu avec le nom spécifié n'est pas trouvé, renvoyer une erreur
     if (!articleMod) {
-      return res.status(404).send('Article item with the given ID was not found.');
+      return res.status(404).send('Article item with the given name was not found.');
     }
 
     // Renvoyer l'article mis à jour
