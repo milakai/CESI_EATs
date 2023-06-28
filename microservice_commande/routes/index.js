@@ -18,57 +18,61 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
     console.error('Erreur de connexion à MongoDB', error);
   });
 
-  const orderSchema = new mongoose.Schema({
-    
-   /* orderId: {
-      type: String,
-      required: true
-    },*/
-    customerName: {
-      type: String,
-      required: true
-    },
-    totalPrice: {
-      type: Number,
-      required: true
-    },
-    items: {
-      type: Array,
-      required: true
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    },
-    status: {
-      type: String,
-      default: "En attente"
-    },
-    driverId: {
-      type: String,
-      ref: 'Driver' // assuming you have a Driver model
-    }
-    // Autres propriétés du modèle de commande
-  });
-  
-  
-  const Order = mongoose.model('Order', orderSchema);
-  async function getOrderDetailsHandler(req, res) {
-    const orderId = req.params.orderId;
-  
-    try {
-      const order = await Order.findById(orderId);
-      if (!order) {
-        return res.status(404).json({ message: 'Commande introuvable' });
-      }
-  
-      res.json(order);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des détails de la commande', error);
-      res.status(500).json({ message: 'Erreur serveur' });
-    }
+const orderSchema = new mongoose.Schema({
+
+  /* orderId: {
+     type: String,
+     required: true
+   },*/
+  customerName: {
+    type: String,
+    required: true
+  },
+  totalPrice: {
+    type: Number,
+    required: true
+  },
+  items: {
+    type: Array,
+    required: true
+  },
+  restaurant: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    default: "En attente"
+  },
+  driverId: {
+    type: String,
+    ref: 'Driver' // assuming you have a Driver model
   }
-    
+  // Autres propriétés du modèle de commande
+});
+
+
+const Order = mongoose.model('Order', orderSchema);
+async function getOrderDetailsHandler(req, res) {
+  const orderId = req.params.orderId;
+
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Commande introuvable' });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des détails de la commande', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+
 // Middleware pour parser le corps des requêtes en JSON
 app.use(express.json());
 
@@ -81,6 +85,22 @@ app.put('/orders/:orderId', updateOrderHandler);
 //Gestionnaire pour la suppresion d'une commande
 app.delete('/orders/:orderId', deleteOrderHandler);
 
+// Gestionnaire pour la suppression d'une commande
+async function deleteOrderHandler(req, res) {
+  const orderId = req.params.orderId;
+
+  try {
+    const deletedOrder = await Order.findByIdAndDelete(orderId);
+    if (!deletedOrder) {
+      return res.status(404).json({ message: 'Commande introuvable' });
+    }
+
+    res.json({ message: `Commande avec l'ID ${orderId} supprimée` });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la commande', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la suppression de la commande' });
+  }
+}
 // Gestionnaire pour la mise à jour du statut d'une commande
 // app.patch('/orders/:orderId/status', updateOrderStatusHandler);
 
@@ -90,6 +110,8 @@ app.patch('/orders/:orderId/status', updateOrderStatusHandler);
 app.get('/orders/:orderId', getOrderDetailsHandler);
 
 app.get('/orders', getAllOrders);
+
+app.get('/order-history', getUserOrders);
 
 
 // Gestionnaire par défaut pour les routes non trouvées
@@ -120,15 +142,24 @@ async function createOrderHandler(req, res) {
     { ID: userId },
     { projection: { firstName: 1 } }
   );
+  const menuNames = items.map((item) => item.name);
+  const menuNamesString = menuNames.join(', ').toString();
+  console.log(menuNamesString);
   
-  console.log(user.firstName)
+  const restaurantName = await client.db('test_Nike').collection('menus').findOne(
+    { nomMenu: menuNamesString },
+    { projection: { restaurant: 1 } }
+    );
+  console.log(restaurantName.restaurant)
 
   // Créer un nouvel objet Order avec les données reçues
   const newOrder = {
-    userId:userId,
-    customerName : user.firstName,
-    totalPrice:totalPrice,
-    items:items
+    userId: userId,
+    customerName: user.firstName,
+    totalPrice: totalPrice,
+    items: items,
+    restaurant: restaurantName.restaurant
+
   };
 
   // Enregistrer la nouvelle commande dans la base de données
@@ -168,10 +199,33 @@ function updateOrderStatusHandler(req, res) {
     });
 }
 
-async function getAllOrders(req, res)
-{
+async function getAllOrders(req, res) {
   try {
     const orders = await Order.find({ status: 'En attente' });
+    res.json(orders);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des commandes en attente', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commandes en attente' });
+  }
+
+}
+async function getUserOrders(req, res) {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", '');
+    console.log(token)
+    const payload = jwt.decode(token)
+    const userId = payload._id;
+    console.log(userId)
+    const user = await client.db('CESI_EAT').collection('Users').findOne(
+      { ID: userId },
+      { projection: { firstName: 1 } }
+    );
+    console.log(user.firstName);
+    const orders = await client.db('test').collection('orders').find(
+      { customerName: user.firstName },
+    ).toArray();
+    console.log()
+
     res.json(orders);
   } catch (error) {
     console.error('Erreur lors de la récupération des commandes en attente', error);
@@ -234,7 +288,7 @@ function getOrderDetailsHandler(req, res) {
         orderId: order._id,
         customerName: order.customerName,
         totalPrice: order.totalPrice,
-        items : order.items,
+        items: order.items,
         status: order.status
         // Autres détails spécifiques de la commande
       };
