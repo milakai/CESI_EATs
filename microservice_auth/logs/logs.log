@@ -431,3 +431,42 @@
 {"level":"info","message":"Connected to SQL Server database"}
 {"level":"info","message":"Connected to SQL Server database"}
 {"level":"info","message":"Connected to SQL Server database"}
+{"level":"error","message":"Error attempting to login: email is not defined","stack":"ReferenceError: email is not defined\n    at C:\\Users\\tombr\\Bureau\\CESI_EAT\\auth_service\\git\\CESI-EAT\\microservice_auth\\auth.js:186:19\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"class":15,"code":"EREQUEST","level":"error","lineNumber":1,"message":"Global error: There are more columns in the INSERT statement than values specified in the VALUES clause. The number of values in the VALUES clause must match the number of columns specified in the INSERT statement.","name":"RequestError","number":109,"originalError":{"info":{"class":15,"handlerName":"onErrorMessage","lineNumber":1,"message":"There are more columns in the INSERT statement than values specified in the VALUES clause. The number of values in the VALUES clause must match the number of columns specified in the INSERT statement.","name":"ERROR","number":109,"procName":"","serverName":"54ad22014695","state":1}},"precedingErrors":[],"procName":"","serverName":"54ad22014695","stack":"RequestError: There are more columns in the INSERT statement than values specified in the VALUES clause. The number of values in the VALUES clause must match the number of columns specified in the INSERT statement.\n    at handleError (C:\\Users\\tombr\\Bureau\\CESI_EAT\\auth_service\\git\\CESI-EAT\\microservice_auth\\node_modules\\mssql\\lib\\tedious\\request.js:384:15)\n    at Connection.emit (node:events:511:28)\n    at Connection.emit (C:\\Users\\tombr\\Bureau\\CESI_EAT\\auth_service\\git\\CESI-EAT\\microservice_auth\\node_modules\\tedious\\lib\\connection.js:1040:18)\n    at RequestTokenHandler.onErrorMessage (C:\\Users\\tombr\\Bureau\\CESI_EAT\\auth_service\\git\\CESI-EAT\\microservice_auth\\node_modules\\tedious\\lib\\token\\handler.js:365:21)\n    at Readable.<anonymous> (C:\\Users\\tombr\\Bureau\\CESI_EAT\\auth_service\\git\\CESI-EAT\\microservice_auth\\node_modules\\tedious\\lib\\token\\token-stream-parser.js:26:33)\n    at Readable.emit (node:events:511:28)\n    at addChunk (node:internal/streams/readable:332:12)\n    at readableAddChunk (node:internal/streams/readable:305:9)\n    at Readable.push (node:internal/streams/readable:242:10)\n    at next (node:internal/streams/from:98:31)","state":1}
+{"error":{"class":15,"code":"EREQUEST","lineNumber":1,"name":"RequestError","number":109,"originalError":{"info":{"class":15,"handlerName":"onErrorMessage","lineNumber":1,"message":"There are more columns in the INSERT statement than values specified in the VALUES clause. The number of values in the VALUES clause must match the number of columns specified in the INSERT statement.","name":"ERROR","number":109,"procName":"","serverName":"54ad22014695","state":1}},"precedingErrors":[],"procName":"","serverName":"54ad22014695","state":1},"level":"error","message":"Error processing the request"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"error","message":"Global error: Blablabla","stack":"Error: Blablabla\n    at C:\\Users\\tombr\\Bureau\\CESI_EAT\\auth_service\\git\\CESI-EAT\\microservice_auth\\auth.js:149:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"}
+{"error":{},"level":"error","message":"Error processing the request"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"error","message":"Error attempting to login: Cannot access 'userType' before initialization","stack":"ReferenceError: Cannot access 'userType' before initialization\n    at C:\\Users\\tombr\\Bureau\\CESI_EAT\\auth_service\\git\\CESI-EAT\\microservice_auth\\auth.js:172:17\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}
+{"level":"info","message":"Connected to SQL Server database"}

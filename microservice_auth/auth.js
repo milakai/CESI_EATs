@@ -137,14 +137,22 @@
         deliveryAddress: req.body.deliveryAddress,
         billingAddress: req.body.billingAddress,
         type: req.body.type,
-        email: req.body.email
+        email: req.body.email,
+      restaurantName : req.body.restaurantName,
+      cuisineType : req.body.cuisineType,
       };
       await client.db('CESI_EAT').collection('Users').insertOne(userMongo);
 
       
       // Insert user into SQL Server
       const request = new sql.Request();
-      const query = `INSERT INTO Users (ID, Email, Username, Password) VALUES ('${userId}', '${req.body.email}', '${req.body.name}', '${hashedPassword}')`;
+      const query = `INSERT INTO Users (ID, Email, Username, Password) VALUES (@id, @email, @username, @password)`;
+    
+    request.input('id', sql.NVarChar, userId);
+    request.input('email', sql.NVarChar, req.body.email);
+    request.input('username', sql.NVarChar, req.body.name);
+    request.input('password', sql.NVarChar, hashedPassword);
+    
       await request.query(query);
 
       // User registered successfully
@@ -168,20 +176,30 @@
       }
 
       const user = result.recordset[0];
-      if (await bcrypt.compare(req.body.password, user.Password)) {
+      const userType = await client.db('CESI_EAT').collection('Users').findOne(
+      { ID: user.ID },
+      { projection: { type: 1 } }
+    );
+
+    if (await bcrypt.compare(req.body.password, user.Password)) {
         const userPayload = {
           _id: user.ID,
-          email: user.Email
+          email: user.Email,
+        type: userType.type
         };
-        const accessToken = jwt.sign(userPayload, secretKey, { expiresIn: '1h' });
+        console.log(userPayload.type)
+      const accessToken = jwt.sign(userPayload, secretKey, { expiresIn: '1h' });
         const tokenQuery = `UPDATE Users SET Token = '${accessToken}' WHERE ID = '${user.ID}'`;
-        await request.query(tokenQuery);
+  
+      await request.query(tokenQuery);
 
         res.status(200).json({
           success: true,
           accessToken,
-          email: user.Email
+          email: user.Email,
+        type: user.type
         });
+
       } else {
         res.status(401).json({ error: 'Email or password incorrect' });
       }

@@ -18,43 +18,49 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
     console.error('Erreur de connexion à MongoDB', error);
   });
 
-const orderSchema = new mongoose.Schema({
-
-  /* orderId: {
-     type: String,
-     required: true
-   },*/
-  customerName: {
-    type: String,
-    required: true
-  },
-  totalPrice: {
-    type: Number,
-    required: true
-  },
-  items: {
-    type: Array,
-    required: true
-  },
-  restaurant: {
-    type: String,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  status: {
-    type: String,
-    default: "En attente"
-  },
-  driverId: {
-    type: String,
-    ref: 'Driver' // assuming you have a Driver model
-  }
-  // Autres propriétés du modèle de commande
-});
-
+  const orderSchema = new mongoose.Schema({
+    
+   /* orderId: {
+      type: String,
+      required: true
+    },*/
+    customerName: {
+      type: String,
+      required: true
+    },
+    totalPrice: {
+      type: Number,
+      required: true
+    },
+    blacklist: {
+      type: [String],
+      required: true,
+      default:[]
+    },
+    items: {
+      type: Array,
+      required: true
+    }, 
+    restaurant: {
+      type: String,
+      required: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    status: {
+      type: String,
+      default: "En attente"
+    },
+    driverId: {
+      type: String,
+      ref: 'Driver' // assuming you have a Driver model
+    }
+    // Autres propriétés du modèle de commande
+  });
+  
+  
 
 const Order = mongoose.model('Order', orderSchema);
 async function getOrderDetailsHandler(req, res) {
@@ -199,9 +205,20 @@ function updateOrderStatusHandler(req, res) {
     });
 }
 
-async function getAllOrders(req, res) {
+async function getAllOrders(req, res)
+{
+
   try {
-    const orders = await Order.find({ status: 'En attente' });
+
+    const token = req.headers.authorization.replace("Bearer ","");
+
+    const payload = jwt.decode(token)
+    const driverId = payload._id;
+
+    const orders = await Order.find({
+      status: 'En attente',
+      blacklist: { $nin: [driverId] }
+  });
     res.json(orders);
   } catch (error) {
     console.error('Erreur lors de la récupération des commandes en attente', error);
