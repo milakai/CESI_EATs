@@ -2,6 +2,8 @@
   <div v-if="showModal" class="modal">
     <h2>Update your selection:</h2>
     <span class="close" @click="$emit('close')">&times;</span>
+
+    <!-- Fields to modify articles -->
     <form v-if="itemType === 'article'" @submit.prevent="submitUpdate">
       <label for="nom">Modification:</label>
       <input v-model="updatedArticle.nom" placeholder="Name" />
@@ -11,6 +13,7 @@
       <button type="submit">Update Article</button>
     </form>
 
+    <!-- Fields to modify menus -->
     <form v-else-if="itemType === 'menu'" @submit.prevent="submitUpdate">
       <label for="nom">Modification:</label>
       <input v-model="updatedMenu.nomMenu" placeholder="Name" />
@@ -40,7 +43,6 @@ export default {
   watch: {
     itemToUpdate: {
       handler(newVal) {
-        // this.updatedArticle = newVal;
         if (this.itemType === 'article') {
           this.updatedArticle = newVal ;
         } else if (this.itemType === 'menu') {

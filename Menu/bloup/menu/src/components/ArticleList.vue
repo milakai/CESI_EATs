@@ -60,7 +60,7 @@
       articleToUpdate: null,      // New data property for the article to update
       showModal: false       
       }
-    }, // n'utiliser pas modal avec slots; ou adapter ArticleList et MenuList pour que le modal puisse faire les rêquetes vers le back
+    },
     methods: {
       add() {
         this.$emit('add', this.newArticle)
@@ -69,12 +69,8 @@
       remove(article) {
         this.$emit('remove', article)
       },
-      // update(article) {
-      //   this.$emit('update', article)
-      // },
       openUpdateModal(article) {
-        alert("UpdateArt"); // debug
-        // this.articleToUpdate = {...articles};
+        // alert("UpdateArt"); // debug
         this.articleToUpdate = JSON.parse(JSON.stringify(article));
         this.showModal = true;
       },
@@ -87,21 +83,6 @@
         this.showModal = false;
         this.articleToUpdate = null;
       },
-      // async updateArticle(article) {
-      //   try {
-      //     const res = await fetch(`http://localhost:3000/article/${article._id}`, {
-      //       method: 'PUT',
-      //       headers: { 'Content-Type': 'application/json' },
-      //       body: JSON.stringify(article)
-      //     });
-      //     const newArticle = await res.json();
-      //     const index = this.articles.findIndex(a => a._id === article._id);
-      //     this.articles[index] = newArticle;
-      //     this.closeUpdateModal(); // close the modal after update
-      //   } catch (error) {
-      //     console.error(error);
-      //   }
-      // }
     }
   }
 

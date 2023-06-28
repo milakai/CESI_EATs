@@ -63,18 +63,14 @@
     },
     methods: {
       add() {
-        alert("AddMenu"); // debug
+        // alert("AddMenu"); // debug
         this.$emit('add', this.newMenu)
         this.newMenu = { nomMenu: '', prix_M: '', restaurant: '', articles: [] }
       },
       remove(menu) {
         this.$emit('remove', menu)
       },
-      // update(menu) {
-      //   this.$emit('update', menu)
-      // }
       openUpdateModal(menu) {
-      // this.menuToUpdate = {...menu};
       this.menuToUpdate = JSON.parse(JSON.stringify(menu));
       this.showModal = true;
       },
