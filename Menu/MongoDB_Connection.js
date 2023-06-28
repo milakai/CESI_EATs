@@ -10,6 +10,7 @@ const express= require('express');
 // Créer une nouvelle application Express
  const app=express();
 
+// Headers cors
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
@@ -66,16 +67,6 @@ const Articles= mongoose.model('Articles', articleSchema);
 // Route pour ajouter un article à la BDD
 app.post('/AjouterArticle', async (req, res) => {
 	console.log(req.body)
-
-  // // Adding a functionality
-  // // NOTE: methods must be added to the schema before compiling it with mongoose.model()
-  // menuSchema.methods.speak = function speak() {
-  //   const greeting = this.name
-  //     ? 'Les articles ' + this.name
-  //     : 'sont';
-  //   console.log(greeting);
-  // };
-
   try{
     // Vérifier si un article avec l'ID spécifié existe déjà
     const article1 = await Articles.findOne( req.body._id );
@@ -91,7 +82,12 @@ app.post('/AjouterArticle', async (req, res) => {
   }
 
 	// New article called article1, then save to DB
-  const article1 = new Articles({ article: req.body.article, nom: req.body.nom, prix: req.body.prix, quantite: req.body.quantite});
+  const article1 = new Articles({ 
+    article: req.body.article, 
+    nom: req.body.nom, 
+    prix: req.body.prix, 
+    quantite: req.body.quantite
+  });
   await article1.save();
 
   // Display article1 in console
