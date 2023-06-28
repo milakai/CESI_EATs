@@ -13,7 +13,11 @@
     <h2>Manage Menus</h2>
     <!-- Add buttons -->
     <MenuList :menus="menus" :articles="articles" @add="addMenu" @remove="removeMenu" @update="updateMenu" />
-    
+
+    <h3>Manage orders</h3>
+    <!-- Add buttons  -->
+    <OrderList :orders="orders" @Accept="acceptOrder" @Cancel="cancelOrder"/>
+
   </div>
 </template>
 
@@ -21,24 +25,29 @@
 import axios from 'axios'
 import ArticleList from '../components/ArticleList.vue'
 import MenuList from '../components/MenuList.vue'
+import OrderList from '../components/OrderList.vue'
 
 export default {
   // Importing the ArticleList and MenuList components to be used in this component.
   components: {
     ArticleList,
-    MenuList
+    MenuList,
+    OrderList
   },
   data() {
     return {
       // Initial state for articles and menus.
       articles: [],
-      menus: []
+      menus: [],
+      orders: []
     }
   },
   async created() {
     // Fetching articles and menus data when the component is created.
     this.articles = await this.fetchArticles()
     this.menus = await this.fetchMenus()
+    // this.orders= await this.fetchOrders()    // TODO: à ajouter lors du merge
+    this.orders= await this.getOrderList()
   },
   methods: {
     // Fetch articles from the server.
@@ -47,9 +56,15 @@ export default {
       console.log(data)
       return data
     },
+
+    // Fetch menus from the server.
     async fetchMenus() {
       return axios.get('http://localhost:3000/AfficherMenu').then(res => res.data)
     },
+
+    // async fetchOrders() {
+    //   return axios.get('http://localhost:3000/orders?').then(res => res.data)    // TODO: à ajouter après le merge
+    // },
     // Add a new article to the server and update the local state.
     async addArticle(article) {
       return axios.post('http://localhost:3000/AjouterArticle', article).then(res => {
