@@ -149,11 +149,11 @@ async function createOrderHandler(req, res) {
     { projection: { firstName: 1 } }
   );
   const menuNames = items.map((item) => item.name);
-  const menuNamesString = menuNames.join(', ').toString();
-  console.log(menuNamesString);
+ 
+  console.log(menuNames);
   
   const restaurantName = await client.db('test_Nike').collection('menus').findOne(
-    { nomMenu: menuNamesString },
+    { nomMenu: menuNames[0] },
     { projection: { restaurant: 1 } }
     );
   console.log(restaurantName.restaurant)
