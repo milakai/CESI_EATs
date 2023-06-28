@@ -46,10 +46,6 @@ connectSqlServerDB();
 
 const orderSchema = new mongoose.Schema({
     
-  /* orderId: {
-     type: String,
-     required: true
-   },*/
    customerName: {
      type: String,
      required: true
@@ -86,49 +82,48 @@ app.patch('/orders/:orderId/driver', async (req, res) => {
   const token = req.headers.authorization;
   const payload = jwt.decode(token)
   const driverId = payload._id;
+  const userType = payload.type;
   const { decision } = req.body; // should be either 'accept' or 'refuse'
   const orderId = req.params.orderId;
 
   try {
-    const order = await client.db('test').collection('orders').findOneAndUpdate(
-      { _id: new ObjectId(orderId), status: 'En attente' },
-      {
-        $set: {
-          status: decision === 'accept' ? 'En cours de livraison' : 'En attente',
-          driverId: decision === 'accept' ? driverId : null,
-        },
-      },
-      { new: true }
-    );
-
-    res.json(order);
+    if(userType === 'driver'){
+      let order;
+      if(decision === 'accept'){
+        
+        order = await client.db('test').collection('orders').findOneAndUpdate(
+          { _id: new ObjectId(orderId), status: 'En attente' },
+          {
+            $set: {
+              status: 'En cours de livraison',
+              driverId: driverId,
+            },
+          },
+          { new: true }
+          );
+          
+        }else{
+          order = await client.db('test').collection('orders').findOneAndUpdate(
+            { _id: new ObjectId(orderId), status: 'En attente' },
+            {
+                $addToSet: {
+                    blacklist: driverId,
+                },
+            },
+            { new: true }
+        );
+        
+        }
+        res.json(order);
+    }else{
+      res.status(403).send("Connectez vous en tant que livreur")
+    }
 
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la commande', error);
     res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de la commande' });
   }
 });
-
-
-// async function assignDriverId(req, res, next) {
-//   const token = req.headers.authorization;
-
-//   const payload = jwt.decode(token);
-//   const userId = payload._id;
-
-//   console.log(userId)
-//   const user = await client.db('CESI_EAT').collection('Users').findOne({ ID: userId });
-
-//   if (!user) {
-//     return res.status(401).json({ message: 'Utilisateur non trouvé' });
-//   }
-
-//   if (user.type === 2) {
-//     req.driverId = userId;
-//   }
-
-//   next();
-// }
 
 const port = 3006;
 app.listen(port, () => {

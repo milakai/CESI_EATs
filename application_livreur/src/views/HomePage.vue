@@ -8,7 +8,7 @@
       <div v-for="category in categories" :key="category" class="category-card">
         <div class="category-card-content">
           <h3 class="category-card-title">{{ category }}</h3>
-          <button class="category-card-action">Livrer</button>
+          <button class="category-card-action" @click="redirectToOrders">Livrer</button>
         </div>
       </div>
     </section>
@@ -16,10 +16,17 @@
 </template>
 
 <script>
+import router from '../router/index.ts'; // Replace '@/router' with the actual path to your router file
+
 export default {
   data() {
     return {
       categories: ['Voir les livraisons disponibles']
+    }
+  },
+  methods: {
+    redirectToOrders() {
+      router.push('/orders');
     }
   }
 }

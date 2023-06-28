@@ -63,7 +63,7 @@ export default {
         this.error = 'Please log in to perform this action.';
         return;
       }
-
+      
       const decision = 'accept';
       const token = accessToken.replace('Bearer ', '');
 
@@ -76,9 +76,12 @@ export default {
         .then(response => {
           console.log(response.data);
           // Handle success, update UI if necessary
+          this.getOrdersToDeliver(); // Fetch updated orders
         })
         .catch(error => {
-          console.error(error);
+          if(error.response.status == 403){
+            alert("Connectez-vous avec un compte livreur ")
+          }
           // Handle error, display error message if necessary
         });
     },
@@ -101,6 +104,7 @@ export default {
         .then(response => {
           console.log(response.data);
           // Handle success, update UI if necessary
+          this.getOrdersToDeliver(); // Fetch updated orders
         })
         .catch(error => {
           console.error(error);

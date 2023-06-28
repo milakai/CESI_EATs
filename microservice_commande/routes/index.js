@@ -32,6 +32,11 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
       type: Number,
       required: true
     },
+    blacklist: {
+      type: [String],
+      required: true,
+      default:[]
+    },
     items: {
       type: Array,
       required: true
@@ -170,8 +175,18 @@ function updateOrderStatusHandler(req, res) {
 
 async function getAllOrders(req, res)
 {
+
   try {
-    const orders = await Order.find({ status: 'En attente' });
+
+    const token = req.headers.authorization.replace("Bearer ","");
+
+    const payload = jwt.decode(token)
+    const driverId = payload._id;
+
+    const orders = await Order.find({
+      status: 'En attente',
+      blacklist: { $nin: [driverId] }
+  });
     res.json(orders);
   } catch (error) {
     console.error('Erreur lors de la récupération des commandes en attente', error);
