@@ -34,6 +34,26 @@
       </li>
     </ul>
     <p>Prix total : {{ totalPrice }}€</p>
+    <button @click="openPaymentModal">Commander et Payer</button>
+  </div>
+
+  <!-- Payment Modal -->
+  <div v-if="showPaymentModal" class="modal">
+    <div class="modal-content">
+      <h2>Informations de paiement</h2>
+      <form @submit.prevent="processPayment">
+        <label for="card-number">Numéro de carte:</label>
+        <input type="text" id="card-number" v-model="cardNumber" required>
+
+        <label for="expiry-date">Date d'expiration:</label>
+        <input type="text" id="expiry-date" v-model="expiryDate" required>
+
+        <label for="cvv">CVV:</label>
+        <input type="text" id="cvv" v-model="cvv" required>
+
+        <button type="submit">Payer</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -53,22 +73,23 @@ export default {
       orderCreated: false,
       orderId: '',
       error: '',
-    };
+      showPaymentModal: false,
+      cardNumber: '',
+      expiryDate: '',
+      cvv: '',
+   };
   },
   mounted() {
     this.selectedRestaurantName = this.$route.params.restaurant;
     this.selectedRestaurantId = this.$route.params.restaurant;
     this.getRestaurantsAndMenus();
   },
-
-
   methods: {
     ...mapMutations(['setSelectedRestaurantId']),
     selectRestaurant(restaurant) {
       this.selectedRestaurantName = restaurant.restaurant;
       this.getMenus();
     },
-
     getRestaurantsAndMenus() {
       axios
         .get('http://localhost:3003/AfficherAM')
@@ -131,8 +152,6 @@ export default {
       }
       const token = accessToken.replace("Bearer ", '');
 
-      // console.log(this.customerName)
-
       const newOrder = {
         token: token,
         customerName: this.customerName,
@@ -153,16 +172,24 @@ export default {
           }
         })
         .then(response => {
-          console.log(response.data.customerName);
           this.customerName = response.data.customerName;
           this.orderCreated = true;
           this.orderId = response.data._id;
           this.orderedMenus = orderedMenus;
-          // this.selectedRestaurant = 
         })
         .catch(error => {
           console.error(error);
         });
+    },
+    openPaymentModal() {
+      this.showPaymentModal = true;
+    },
+    processPayment() {
+      // Here you would process the payment using the card information
+      // For the sake of this example, we'll just close the modal and display a success message
+      this.showPaymentModal = false;
+      this.orderCreated = false;
+      alert('Commande payée');
     },
     goBack() {
       this.$router.go(-1);
@@ -174,9 +201,8 @@ export default {
       return this.restaurants.filter(restaurant => restaurant.restaurant !== this.selectedRestaurantName);
     },
     filteredMenus() {
-      return this.menus.filter(menu => menu.restaurant === this.selectedRestaurantName);
+      return this.menus.filter(menu => menu.restaurant ===this.selectedRestaurantName);
     },
-
     orderedMenus() {
       return this.menus.filter(menu => menu.quantity > 0);
     },
@@ -185,7 +211,6 @@ export default {
 </script>
 
 <style scoped>
-
 .container-quantity-control{
   display: flex;
   justify-content: center;
@@ -198,66 +223,46 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1em;
 }
-
 .restaurant-option {
   display: flex;
   align-items: center;
 }
-
 .restaurant-option input[type='radio'] {
   margin-right: 1em;
 }
-
 .create-order {
   font-family: Arial, sans-serif;
   color: #333;
 }
-
 .order-form {
   margin-top: 20px;
 }
-
 .create-order h2 {
   font-size: 1.5em;
 }
-
 .create-order .back-button {
   background-color: #f8f9fa;
-  /* Couleur de fond claire */
   color: #333;
-  /* Couleur de texte sombre */
   border: 1px solid #ced4da;
-  /* Bordure discrète */
   padding: 10px 20px;
-  /* Espace intérieur pour le rendre plus grand */
   font-size: 1em;
-  /* Taille de police standard */
   border-radius: 5px;
-  /* Coins arrondis */
   cursor: pointer;
-  /* Change le curseur lorsqu'il survole le bouton */
   text-decoration: none;
-  /* Supprime le soulignement */
   transition: background-color 0.3s ease;
-  /* Animation douce lors du survol */
 }
-
 .create-order .back-button:hover {
   background-color: #e9ecef;
-  /* Couleur de fond légèrement plus foncée lors du survol */
 }
-
 .create-order label {
   display: block;
   margin-bottom: 5px;
 }
-
 .create-order .quantity-controls {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .create-order .quantity-control {
   display: flex;
   align-items: center;
@@ -269,11 +274,8 @@ export default {
   cursor: pointer;
   font-weight: bold;
   color: #333;
-  /* Ajouté pour rendre le texte plus visible */
   font-size: 1.2em;
-  /* Ajouté pour rendre le texte plus grand */
 }
-
 .create-order .quantity-control button {
   display: flex;
   align-items: center;
@@ -285,11 +287,8 @@ export default {
   cursor: pointer;
   font-weight: bold;
   color: #333;
-  /* Ajouté pour rendre le texte plus visible */
   font-size: 1.2em;
-  /* Ajouté pour rendre le texte plus grand */
 }
-
 .create-order .quantity-control input {
   width: 50px;
   height: 30px;
@@ -297,41 +296,48 @@ export default {
   margin: 0 5px;
   text-align: center;
 }
-
-
-
 .create-order p {
   font-size: 1.5em;
-  /* Augmente la taille de la police */
   color: #333;
-  /* Change la couleur du texte */
   font-weight: bold;
-  /* Rend le texte en gras */
   text-align: center;
-  /* Centre le texte */
   margin-top: 20px;
-  /* Ajoute de l'espace au-dessus du texte */
 }
-
 .create-order .order-details {
   margin-top: 20px;
   padding: 10px;
   border: 1px solid #ccc;
   background-color: #f9f9f9;
 }
-
 .create-order .order-details h3 {
   font-size: 1.2em;
   margin-bottom: 10px;
 }
-
 .create-order .order-details ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
 }
-
 .create-order .order-details ul li {
   margin-bottom: 5px;
+}
+
+/* Payment Modal Styles */
+.modal {
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+}
+.modal-content{
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
 }
 </style>
