@@ -1,4 +1,4 @@
-# menu_front
+# menu
 
 ## Project setup
 ```
