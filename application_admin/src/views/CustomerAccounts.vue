@@ -26,6 +26,7 @@
           <td>{{ user.email }}</td>
           <td>
             <button @click="editProfile(user)">Edit</button>
+            <button @click="deleteUser(user)">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -110,6 +111,40 @@ export default {
       this.selectedUser = { ...user };
       document.body.classList.add("modal-open");
     },
+    deleteUser(user) {
+    const confirmDelete = window.confirm(`Are you sure you want to delete the user with ID: ${user.ID}?`);
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      const accessToken = localStorage.getItem("authToken");
+      if (accessToken == null) {
+        this.$router.push("/");
+      }
+      const token = accessToken.replace("Bearer ", "");
+      const userId = user.ID;
+
+      // Make the API request to delete the user profile
+      axios.delete(`http://localhost:3001/admin/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          console.log("Deleted user:", response.data.message);
+          // Remove the user object from the 'users' array
+          this.users = this.users.filter(u => u.ID !== userId);
+        })
+        .catch(error => {
+          console.error("Error deleting user:", error);
+          // Handle the error as needed
+        });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      // Handle the error as needed
+    }
+  },
     updateProfile() {
       try {
         const accessToken = localStorage.getItem("authToken");

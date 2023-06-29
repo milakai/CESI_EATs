@@ -411,7 +411,36 @@ app.delete('/delete', authenticateToken, handleTokenExpiredError, handleTypeErro
     res.status(500).json({ error: 'Error deleting user' });
   }
 });
+// Delete any user profile route (admin only)
+app.delete('/admin/users/:userId', authenticateToken, handleTokenExpiredError, handleTypeError, async (req, res) => {
+  try {
+    // Check if the authenticated user is an admin
+    if (req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
 
+    const userId = req.params.userId;
+
+    // Delete user from MongoDB
+    const usersCollection = client.db('CESI_EAT').collection('Users');
+    const deleteResult = await usersCollection.deleteOne({ ID: userId });
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Delete user from SQL Server
+    const request = new sql.Request();
+    const deleteQuery = `DELETE FROM Users WHERE ID = '${userId}'`;
+    await request.query(deleteQuery);
+
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.log(error);
+    logger.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Error deleting user' });
+  }
+});
 // Handle 404 errors for non-existent routes
 app.use((req, res, next) => {
   res.status(404).json({ error: 'Route not found' });
