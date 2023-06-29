@@ -2,18 +2,19 @@
   <div v-if="error" class="error">{{ error }}</div>
   <div class="create-order">
     <h2>Créer une nouvelle commande</h2>
-    <button @click="goBack">Revenir en arrière</button>
+    <button class="back-button" @click="goBack">Revenir en arrière</button>
     <p>Restaurant Name: {{ selectedRestaurantName }}</p>
-
   </div>
 
   <form @submit.prevent="createOrder" class="order-form">
     <div v-for="menu in filteredMenus" :key="menu._id">
-      <label>{{ menu.nomMenu }} ({{ menu.prix_M }}€)</label>
-      <div class="quantity-controls">
-        <button type="button" @click="decrementQuantity(menu)">-</button>
-        <input type="number" v-model.number="menu.quantity" min="0" @input="calculateTotalPrice">
-        <button type="button" @click="incrementQuantity(menu)">+</button>
+      <div class="container-quantity-control">
+        <label>{{ menu.nomMenu }} ({{ menu.prix_M }}€)</label>
+        <div class="quantity-controls">
+          <button type="button" class="quantity-controls" @click="decrementQuantity(menu)">-</button>
+          <input type="number" v-model.number="menu.quantity" min="0" @input="calculateTotalPrice">
+          <button type="button" class="quantity-controls" @click="incrementQuantity(menu)">+</button>
+        </div>
       </div>
     </div>
     <div>
@@ -128,7 +129,7 @@ export default {
         this.error = 'Please log in to order.';
         return; // stop execution of the method
       }
-      const token = accessToken.replace("Bearer ",'');
+      const token = accessToken.replace("Bearer ", '');
 
       // console.log(this.customerName)
 
@@ -157,6 +158,7 @@ export default {
           this.orderCreated = true;
           this.orderId = response.data._id;
           this.orderedMenus = orderedMenus;
+          // this.selectedRestaurant = 
         })
         .catch(error => {
           console.error(error);
@@ -183,6 +185,14 @@ export default {
 </script>
 
 <style scoped>
+
+.container-quantity-control{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  line-height: 200%;
+}
 .restaurant-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -211,7 +221,7 @@ export default {
   font-size: 1.5em;
 }
 
-.create-order button {
+.create-order .back-button {
   background-color: #f8f9fa;
   /* Couleur de fond claire */
   color: #333;
@@ -232,7 +242,7 @@ export default {
   /* Animation douce lors du survol */
 }
 
-.create-order button:hover {
+.create-order .back-button:hover {
   background-color: #e9ecef;
   /* Couleur de fond légèrement plus foncée lors du survol */
 }
@@ -246,10 +256,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Ajouté pour centrer horizontalement */
 }
 
-.create-order .quantity-controls button {
+.create-order .quantity-control {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -260,16 +269,36 @@ export default {
   cursor: pointer;
   font-weight: bold;
   color: #333;
+  /* Ajouté pour rendre le texte plus visible */
   font-size: 1.2em;
+  /* Ajouté pour rendre le texte plus grand */
 }
 
-.create-order .quantity-controls input {
+.create-order .quantity-control button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background-color: #f2f2f2;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+  /* Ajouté pour rendre le texte plus visible */
+  font-size: 1.2em;
+  /* Ajouté pour rendre le texte plus grand */
+}
+
+.create-order .quantity-control input {
   width: 50px;
   height: 30px;
   border: 1px solid #ccc;
   margin: 0 5px;
   text-align: center;
 }
+
+
 
 .create-order p {
   font-size: 1.5em;

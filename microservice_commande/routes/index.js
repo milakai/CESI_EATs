@@ -40,6 +40,10 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
     items: {
       type: Array,
       required: true
+    }, 
+    restaurant: {
+      type: String,
+      required: true
     },
     createdAt: {
       type: Date,
@@ -57,23 +61,24 @@ mongoose.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }
   });
   
   
-  const Order = mongoose.model('Order', orderSchema);
-  async function getOrderDetailsHandler(req, res) {
-    const orderId = req.params.orderId;
-  
-    try {
-      const order = await Order.findById(orderId);
-      if (!order) {
-        return res.status(404).json({ message: 'Commande introuvable' });
-      }
-  
-      res.json(order);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des détails de la commande', error);
-      res.status(500).json({ message: 'Erreur serveur' });
+
+const Order = mongoose.model('Order', orderSchema);
+async function getOrderDetailsHandler(req, res) {
+  const orderId = req.params.orderId;
+
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Commande introuvable' });
     }
+
+    res.json(order);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des détails de la commande', error);
+    res.status(500).json({ message: 'Erreur serveur' });
   }
-    
+}
+
 // Middleware pour parser le corps des requêtes en JSON
 app.use(express.json());
 
@@ -86,6 +91,22 @@ app.put('/orders/:orderId', updateOrderHandler);
 //Gestionnaire pour la suppresion d'une commande
 app.delete('/orders/:orderId', deleteOrderHandler);
 
+// Gestionnaire pour la suppression d'une commande
+async function deleteOrderHandler(req, res) {
+  const orderId = req.params.orderId;
+
+  try {
+    const deletedOrder = await Order.findByIdAndDelete(orderId);
+    if (!deletedOrder) {
+      return res.status(404).json({ message: 'Commande introuvable' });
+    }
+
+    res.json({ message: `Commande avec l'ID ${orderId} supprimée` });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la commande', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la suppression de la commande' });
+  }
+}
 // Gestionnaire pour la mise à jour du statut d'une commande
 // app.patch('/orders/:orderId/status', updateOrderStatusHandler);
 
@@ -95,6 +116,8 @@ app.patch('/orders/:orderId/status', updateOrderStatusHandler);
 app.get('/orders/:orderId', getOrderDetailsHandler);
 
 app.get('/orders', getAllOrders);
+
+app.get('/order-history', getUserOrders);
 
 
 // Gestionnaire par défaut pour les routes non trouvées
@@ -125,15 +148,24 @@ async function createOrderHandler(req, res) {
     { ID: userId },
     { projection: { firstName: 1 } }
   );
+  const menuNames = items.map((item) => item.name);
+ 
+  console.log(menuNames);
   
-  console.log(user.firstName)
+  const restaurantName = await client.db('test_Nike').collection('menus').findOne(
+    { nomMenu: menuNames[0] },
+    { projection: { restaurant: 1 } }
+    );
+  console.log(restaurantName.restaurant)
 
   // Créer un nouvel objet Order avec les données reçues
   const newOrder = {
-    userId:userId,
-    customerName : user.firstName,
-    totalPrice:totalPrice,
-    items:items
+    userId: userId,
+    customerName: user.firstName,
+    totalPrice: totalPrice,
+    items: items,
+    restaurant: restaurantName.restaurant
+
   };
 
   // Enregistrer la nouvelle commande dans la base de données
@@ -200,6 +232,30 @@ async function getAllOrders(req, res)
    
 
 }
+async function getUserOrders(req, res) {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", '');
+    console.log(token)
+    const payload = jwt.decode(token)
+    const userId = payload._id;
+    console.log(userId)
+    const user = await client.db('CESI_EAT').collection('Users').findOne(
+      { ID: userId },
+      { projection: { firstName: 1 } }
+    );
+    console.log(user.firstName);
+    const orders = await client.db('test').collection('orders').find(
+      { customerName: user.firstName },
+    ).toArray();
+    console.log()
+
+    res.json(orders);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des commandes en attente', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commandes en attente' });
+  }
+
+}
 // Gestionnaire pour la modification d'une commande
 function updateOrderHandler(req, res) {
   const orderId = req.params.orderId;
@@ -255,7 +311,7 @@ function getOrderDetailsHandler(req, res) {
         orderId: order._id,
         customerName: order.customerName,
         totalPrice: order.totalPrice,
-        items : order.items,
+        items: order.items,
         status: order.status
         // Autres détails spécifiques de la commande
       };

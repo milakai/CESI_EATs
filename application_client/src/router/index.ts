@@ -8,6 +8,9 @@
   import UpdateOrder from '../views/UpdateOrder.vue'
   import OrderDetails from '../views/OrderDetails.vue'
   import CreateOrder from '../views/CreateOrder.vue'
+  import OrderHistory from '../views/OrderHistory.vue'
+  import EditOrder from '@/views/EditOrder.vue'
+
 
 
   const routes: Array<RouteRecordRaw> = [
@@ -53,6 +56,17 @@
       name: 'UpdateOrder',
       component: UpdateOrder,
       props: true,
+    },
+    {
+      path: '/order-history',
+      name: 'OrderHistory',
+      component: OrderHistory,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/edit-order/:orderId',
+      name: 'edit-order',
+      component: EditOrder,
     },
   ]
 
