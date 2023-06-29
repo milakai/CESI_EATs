@@ -53,8 +53,11 @@ export default {
           this.orders = response.data;
         })
         .catch(error => {
-          this.error = error.message;
+          if(error.response.status == 403){
+            alert("Connectez-vous avec un compte livreur ")
+          this.error = "Vous ne pouvez pas acceder a cette fonctionnalité en tant que client ";
           console.error(error);
+          }
         });
     },
     acceptOrder(orderId) {

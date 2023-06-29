@@ -10,14 +10,20 @@
       <input class="registration-input" v-model="billingAddress" placeholder="Billing Address" />
       <select class="registration-dropdown" v-model="type">
         <option value="customer" :selected="type === 'customer'">Customer</option>
-        <option value="admin">Admin</option>
-        <option value="supplier">Supplier</option>
+        <option value="driver">Driver</option>
+        <option value="restaurant owner">Restaurant</option>
       </select>
+      <div v-if="type === 'restaurant owner'">
+        <input class="registration-input" v-model="restaurantName" placeholder="Name of the Restaurant" />
+        <input class="registration-input" v-model="cuisineType" placeholder="Type of Cuisine" />
+      </div>
+
       <button class="registration-button" type="submit">Register</button>
       <div class="registration-message" :class="messageClass">{{ message }}</div>
     </form>
   </div>
 </template>
+
 
 <style scoped>
 .registration-container {

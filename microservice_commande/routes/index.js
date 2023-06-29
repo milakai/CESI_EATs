@@ -176,22 +176,28 @@ function updateOrderStatusHandler(req, res) {
 async function getAllOrders(req, res)
 {
 
+  const token = req.headers.authorization.replace("Bearer ","");
+  const payload = jwt.decode(token)
+  const driverId = payload._id;
+  const userType = payload.type;
+
   try {
+    if(userType === 'driver'){
 
-    const token = req.headers.authorization.replace("Bearer ","");
+      const orders = await Order.find({
+        status: 'En attente',
+        blacklist: { $nin: [driverId] }
+    });
+      res.json(orders);
+    } else{
+      res.status(403).send("Connectez vous en tant que livreur")
+    }
 
-    const payload = jwt.decode(token)
-    const driverId = payload._id;
-
-    const orders = await Order.find({
-      status: 'En attente',
-      blacklist: { $nin: [driverId] }
-  });
-    res.json(orders);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des commandes en attente', error);
-    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commandes en attente' });
-  }
+    }catch (error) {
+      console.error('Erreur lors de la récupération des commandes en attente', error);
+      res.status(500).json({ message: 'Erreur serveur lors de la récupération des commandes en attente' });
+    }
+   
 
 }
 // Gestionnaire pour la modification d'une commande
