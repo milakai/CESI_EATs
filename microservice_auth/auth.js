@@ -278,6 +278,63 @@ app.get('/admin/users', authenticateToken, handleTokenExpiredError, handleTypeEr
     res.status(500).json({ error: 'Error retrieving user accounts' });
   }
 });
+// Update any user profile route (admin only)
+app.patch('/admin/users/:userId', authenticateToken, handleTokenExpiredError, handleTypeError, async (req, res) => {
+  try {
+    // Check if the authenticated user is an admin
+    if (req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
+
+    const userId = req.params.userId;
+    const { email, firstName, lastName, deliveryAddress, billingAddress } = req.body;
+
+    // Update user info in MongoDB
+    const usersCollection = client.db('CESI_EAT').collection('Users');
+    const updateFields = {};
+
+    if (email) {
+      updateFields.email = email;
+    }
+
+    if (firstName) {
+      updateFields.firstName = firstName;
+    }
+
+    if (lastName) {
+      updateFields.lastName = lastName;
+    }
+
+    if (deliveryAddress) {
+      updateFields.deliveryAddress = deliveryAddress;
+    }
+
+    if (billingAddress) {
+      updateFields.billingAddress = billingAddress;
+    }
+
+    await usersCollection.updateOne(
+      { ID: userId },
+      { $set: updateFields }
+    );
+
+    // Update user info in SQL Server
+    const request = new sql.Request();
+    let updateQuery = '';
+
+    if (email) {
+      updateQuery += `UPDATE Users SET Email = '${email}' WHERE ID = '${userId}';`;
+    }
+    await request.query(updateQuery);
+
+    res.status(200).json({ message: 'User information updated successfully' });
+  } catch (error) {
+    console.log(error)
+    logger.error('Error updating user information:', error);
+    res.status(500).json({ error: 'Error updating user information' });
+  }
+});
+
 // Update profile route
 app.patch('/profile', authenticateToken, handleTokenExpiredError, handleTypeError, async (req, res) => {
   try {

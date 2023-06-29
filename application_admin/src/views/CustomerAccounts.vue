@@ -52,8 +52,6 @@
         </form>
       </div>
     </div>
-
-
   </div>
 </template>
 
@@ -109,53 +107,54 @@ export default {
       }
     },
     editProfile(user) {
-      console.log('editProfile called with user:', user);
-
       this.selectedUser = { ...user };
       document.body.classList.add("modal-open");
     },
     updateProfile() {
-  try {
-    const accessToken = localStorage.getItem("authToken");
-    if (accessToken == null) {
-      this.$router.push("/");
-    }
-    const token = accessToken.replace("Bearer ", "");
-    const userId = this.selectedUser.ID;
+      try {
+        const accessToken = localStorage.getItem("authToken");
+        if (accessToken == null) {
+          this.$router.push("/");
+        }
+        const token = accessToken.replace("Bearer ", "");
+        const userId = this.selectedUser.ID;
 
-    // Prepare the request payload with updated user data
-    const payload = {
-      email: this.selectedUser.email,
-      firstName: this.selectedUser.firstName,
-      lastName: this.selectedUser.lastName,
-      deliveryAddress: this.selectedUser.deliveryAddress,
-      billingAddress: this.selectedUser.billingAddress
-    };
+        // Prepare the request payload with updated user data
+        const payload = {
+          email: this.selectedUser.email,
+          firstName: this.selectedUser.firstName,
+          lastName: this.selectedUser.lastName,
+          deliveryAddress: this.selectedUser.deliveryAddress,
+          billingAddress: this.selectedUser.billingAddress
+        };
 
-    // Make the API request to update the user profile
-    axios.patch(`http://localhost:3001/profile`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then(response => {
-        console.log("Updated profile:", response.data.message);
-        // Close the modal
-        this.closeModal();
-        // Fetch the updated user list from the server
-        this.fetchUsers();
-      })
-      .catch(error => {
+        // Make the API request to update the user profile
+        // Make the API request to update the user profile
+        axios.patch(`http://localhost:3001/admin/users/${userId}`, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+          .then(response => {
+            console.log("Updated profile:", response.data.message);
+            // Update the user object in the 'users' array
+            const updatedUserIndex = this.users.findIndex(user => user.ID === userId);
+            if (updatedUserIndex !== -1) {
+              this.users[updatedUserIndex] = { ...this.selectedUser };
+            }
+            // Close the modal
+            this.closeModal();
+          })
+          .catch(error => {
+            console.error("Error updating profile:", error);
+            // Handle the error as needed
+          });
+      } catch (error) {
         console.error("Error updating profile:", error);
         // Handle the error as needed
-      });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    // Handle the error as needed
-  }
-},
-
-
+      }
+    },
     closeModal() {
       this.selectedUser = null;
       document.body.classList.remove("modal-open");
