@@ -24,7 +24,7 @@ app.use(function(req, res, next) {
 app.use(express.json()); 
 
 
-const port=3000;
+const port=3003;
 
 // mettre port 3000 en état LISTEN
 app.listen(port, () => {
@@ -64,6 +64,14 @@ const articleSchema = new mongoose.Schema({
 // Compiling schema into model
 const Menus = mongoose.model('Menus', menuSchema);
 const Articles= mongoose.model('Articles', articleSchema);
+
+
+app.get('/AfficherAM', async (req, res) => {
+
+  const menus = await Menus.find();
+  const articles = await Articles.find();
+  res.json(menus);
+});
 
 // Route pour ajouter un article à la BDD
 app.post('/AjouterArticle', async (req, res) => {
