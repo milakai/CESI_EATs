@@ -4,7 +4,7 @@
       <a href="/" class="logo">Cesi Eat</a>
       <div class="nav-items">
         <a href="/">Home</a>
-        <a href="/order-history">Order History</a>
+        <a href="/orders">Orders</a>
         <a href="#">Contact</a>
       </div>
       <div class="auth-buttons">
