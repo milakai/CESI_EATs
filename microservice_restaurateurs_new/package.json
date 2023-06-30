@@ -18,6 +18,8 @@
     "crypto-browserify": "^3.12.0",
     "https-browserify": "^1.0.0",
     "i": "^0.3.7",
+    "jsonwebtoken": "^9.0.0",
+    "mongodb": "^5.6.0",
     "mongoose": "^7.2.4",
     "net": "^1.0.2",
     "nodemon": "^2.0.22",

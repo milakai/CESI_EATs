@@ -1,17 +1,22 @@
-// getting-started.js
+
+const jwt = require('jsonwebtoken');
 
 // Importer mongoose
 const mongoose = require('mongoose');
 // Importer Express
-const express= require('express');
+const express = require('express');
+const { MongoClient } = require('mongodb');
 
-// const cors= require('cors');
+const cors = require('cors');
 
 // Créer une nouvelle application Express
- const app=express();
+const app = express();
+app.use(cors({
+  origin: '*' // allow only this origin
+}));
 
 // Headers cors
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -21,10 +26,11 @@ app.use(function(req, res, next) {
 //app.use(cors());
 
 // for parsing application/json
-app.use(express.json()); 
+app.use(express.json());
 
-
-const port=3003;
+const uri = "mongodb+srv://Tom:rHiNUmndV0MIzX3t@db0cluster0.scxfepc.mongodb.net/?authMechanism=DEFAULT";
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const port = 3003;
 
 // mettre port 3000 en état LISTEN
 app.listen(port, () => {
@@ -34,13 +40,13 @@ app.listen(port, () => {
 async function main() {
   // await mongoose.connect('mongodb://127.0.0.1:27017/test');     //test your requests locally
   // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/test');` if your database has auth enabled
-  
+
   // Var pour encoder les comptes à caractères spéciaux 
   const username = encodeURIComponent('Nike');
   const password = encodeURIComponent('12345');
 
   // Connexion à la BDD MongoDB
-  await mongoose.connect(`mongodb+srv://${username}:${password}@db0cluster0.scxfepc.mongodb.net/test_Nike?retryWrites=true&w=majority`); 
+  await mongoose.connect(`mongodb+srv://${username}:${password}@db0cluster0.scxfepc.mongodb.net/test_Nike?retryWrites=true&w=majority`);
 }
 main().catch(err => console.log(err));
 
@@ -51,7 +57,7 @@ const menuSchema = new mongoose.Schema({
   nomMenu: String,
   restaurant: String
 });
-  
+
 // Article schema creation
 const articleSchema = new mongoose.Schema({
   article: String,
@@ -60,10 +66,10 @@ const articleSchema = new mongoose.Schema({
   quantite: Number,
   restaurant: String
 });
-    
+
 // Compiling schema into model
 const Menus = mongoose.model('Menus', menuSchema);
-const Articles= mongoose.model('Articles', articleSchema);
+const Articles = mongoose.model('Articles', articleSchema);
 
 
 app.get('/AfficherAM', async (req, res) => {
@@ -74,118 +80,121 @@ app.get('/AfficherAM', async (req, res) => {
 });
 
 // Route pour ajouter un article à la BDD
+// Route pour ajouter un article à la BDD
 app.post('/AjouterArticle', async (req, res) => {
-	console.log(req.body)
-  try{
-    // Vérifier si un article avec l'ID spécifié existe déjà
-    const article1 = await Articles.findOne( req.body._id );
-    // console.log('Id menu est:', existingMenu.idMenu)                      // debug
-  
-    // Si un menu avec cet ID existe déjà, renvoyer une erreur
-    if (!article1) {
-      return res.status(400).send('A menu with this ID already exists.');
+  console.log(req.body);
+  const token = req.headers.authorization.replace("Bearer ", '');
+  const payload = jwt.decode(token)
+  const restauId = payload._id;
+  const userType = payload.type;
+
+  try {
+    if (userType === 'restaurant_owner') {
+      // Vérifier si un article avec l'ID spécifié existe déjà
+
+      // console.log('Id menu est:', existingMenu.idMenu)                      // debug
+      const restau = await client.db('CESI_EAT').collection('Users').findOne(
+        { ID: restauId },
+        { projection: { restaurantName: 1 } }
+      );
+      console.log(restau)
+      const article1 = await Articles.findOne({ _id: req.body._id });
+      if (article1) {
+        return res.status(400).send('An article with this ID already exists.');
+      }
+
+      // New article called article1, then save to DB
+      article1 = new Articles({
+        article: req.body.article,
+        nom: req.body.nom,
+        prix: req.body.prix,
+        quantite: req.body.quantite,
+        restaurant: restau.restaurantName
+      });
+
+      // Save article1 to the database
+      await article1.save();
+
+      // Display article1 in console
+      console.log(
+        article1.article,
+        article1.nom,
+        article1.prix,
+        article1.quantite,
+        article1.restaurant
+      );
+
+      // Envoyer une réponse indiquant que l'article a été ajouté avec succès
+      return res.sendStatus(201);
+    } else {
+      res.status(403).send("Connectez vous en tant que restaurateur");
     }
-  } catch(error){
+  } catch (error) {
     console.error(error);
-    res.sendStatus(400).send('This article already exists. Please increase its quantity.');
+    res.status(400).send('An error occurred while adding the article.');
   }
-
-	// New article called article1, then save to DB
-  const article1 = new Articles({ 
-    article: req.body.article, 
-    nom: req.body.nom, 
-    prix: req.body.prix, 
-    quantite: req.body.quantite,
-    restaurant: req.body.restaurant
-  });
-  await article1.save();
-
-  // Display article1 in console
-  console.log(article1.article, article1.nom, article1.prix, article1.quantite, article1.restaurant); 
-  
-  // Envoyer ok POST  
-  return res.sendStatus(201);
 });
+
 
 
 // Route pour ajouter un menu à la BDD
 app.post('/AjouterMenu', async (req, res) => {
-  // console.log(req.body);
-
-  // // Vérifier si un menu avec le nom spécifié existe déjà
-  // const existingMenu = await Menus.findOne( { nomMenu: req.body.nomMenu} );
-  // console.log('Nom du menu est:', existingMenu?.nomMenu);                      // debug
-
-  // // Si un menu avec ce nom existe déjà, renvoyer une erreur
-  // if (existingMenu) {
-  //   return res.status(409).send('A menu with this name already exists.');
-  // }
-
-  // // Vérifier si l'article existe dans la table des articles
-  // // const existingArticle = await Articles.findOne({ nom: req.body.articles });
-  
-  // // if (!existingArticle) {
-  // //   return res.status(404).send('The article does not exist, please add it.');
-  // // }
-  // for (let article of req.body.articles) {
-  //   // Try to find each article in the database.
-  //   const existingArticle = await Articles.findOne({ nom: article.nom });
-  
-  //   // If an article doesn't exist, return an error.
-  //   if (!existingArticle) {
-  //     return res.status(404).send(`The article with name ${article.nom} does not exist, please add it.`);
-  //   }
-  // }
-
-  // // Vérifier si l'article existe déjà dans le menu
-  // const articleInMenu = existingMenu?.articles.find(article => article === req.body.articles);
-
-  // if (articleInMenu) {
-  //   return res.status(409).send('The article is already added in the menu, please increase its quantity.');
-  // }
-
-
-  // // Si aucun menu avec cet ID n'est trouvé, créer et enregistrer le nouveau menu
-  // const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu, restaurant: req.body.restaurant });
-  // await menu1.save();                                   //besoin que les articles soient du type liste
   console.log(req.body);
-
+  const token = req.headers.authorization.replace("Bearer ", '');
+  const payload = jwt.decode(token)
+  const restauId = payload._id;
+  const userType = payload.type;
   // Vérifier si un menu avec le nom spécifié existe déjà
-  const existingMenu = await Menus.findOne( { nomMenu: req.body.nomMenu} );
+  const existingMenu = await Menus.findOne({ nomMenu: req.body.nomMenu });
   console.log('Nom du menu est:', existingMenu?.nomMenu);                      // debug
 
-  // Si un menu avec ce nom existe déjà, renvoyer une erreur
-  if (existingMenu) {
-    return res.status(409).send('A menu with this name already exists.');
-  }
+  try {
+    if (userType === 'restaurant_owner') {
+      const restau = await client.db('CESI_EAT').collection('Users').findOne(
+        { ID: restauId },
+        { projection: { restaurantName: 1 } }
+      );
+      console.log("RESTAU : ", restau.restaurantName)
+      console.log(restau.restaurantName)
+      if (existingMenu) {
+        return res.status(409).send('A menu with this name already exists.');
+      }
 
-  // Vérifier si l'article existe dans la table des articles
-  for (let articleName of req.body.articles) {
-    // Try to find each article in the database.
-    const existingArticle = await Articles.findOne({ nom: articleName });
-  
-    // If an article doesn't exist, return an error.
-    if (!existingArticle) {
-      return res.status(404).send(`The article with name ${articleName} does not exist, please add it.`);
+      // Vérifier si l'article existe dans la table des articles
+      for (let articleName of req.body.articles) {
+        // Try to find each article in the database.
+        const existingArticle = await Articles.findOne({ nom: articleName });
+
+        // If an article doesn't exist, return an error.
+        if (!existingArticle) {
+          return res.status(404).send(`The article with name ${articleName} does not exist, please add it.`);
+        }
+      }
+
+      // Vérifier si l'article existe déjà dans le menu
+      const articleInMenu = existingMenu?.articles.find(article => article === req.body.articles);
+
+      if (articleInMenu) {
+        return res.status(409).send('The article is already added in the menu, please increase its quantity.');
+      }
+
+      // Si aucun menu avec cet ID n'est trouvé, créer et enregistrer le nouveau menu
+      const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu, restaurant: restau.restaurantName });
+      await menu1.save();
+      // Affichage élèments du Menu dans la console
+      console.log(menu1.articles, menu1.prix_M, menu1.nomMenu, menu1.restaurant);
+
+      // Envoyer ok POST  
+      return res.status(201).send(menu1);
+      // console.log('Id menu est:', existingMenu.idMenu)                    
+    } else {
+      res.status(403).send("Connectez vous en tant que restaurateur");
     }
+  } catch (error) {
+    console.error(error);
   }
-
-  // Vérifier si l'article existe déjà dans le menu
-  const articleInMenu = existingMenu?.articles.find(article => article === req.body.articles);
-
-  if (articleInMenu) {
-    return res.status(409).send('The article is already added in the menu, please increase its quantity.');
-  }
-
-  // Si aucun menu avec cet ID n'est trouvé, créer et enregistrer le nouveau menu
-  const menu1 = new Menus({ prix_M: req.body.prix_M, articles: req.body.articles, nomMenu: req.body.nomMenu, restaurant: req.body.restaurant });
-  await menu1.save(); 
-  // Affichage élèments du Menu dans la console
-  console.log(menu1.articles, menu1.prix_M, menu1.nomMenu, menu1.restaurant);
-
-  // Envoyer ok POST  
-  return res.status(201).send(menu1);
 });
+
 
 
 
@@ -199,7 +208,7 @@ app.put('/menu', async (req, res) => {
     };
 
     const menuMod = await Menus.findOneAndUpdate(
-      {nomMenu: req.body.nomMenu},          // Utiliser le nom du Menu envoyé dans le corps de la requête
+      { nomMenu: req.body.nomMenu },          // Utiliser le nom du Menu envoyé dans le corps de la requête
       update,                             // Utiliser les données envoyées dans le corps de la requête
       { new: true, runValidators: true } // Renvoyer le document mis à jour et exécuter les validateurs de schéma
     );
@@ -211,7 +220,7 @@ app.put('/menu', async (req, res) => {
     }
 
     // Renvoyer le menu mis à jour
-    res.send({menuMod});
+    res.send({ menuMod });
   } catch (error) {
     console.error(error)
     // En cas d'erreur (par exemple, une validation échouée), renvoyer une erreur 400
@@ -232,7 +241,7 @@ app.put('/article', async (req, res) => {
     };
 
     const articleMod = await Articles.findOneAndUpdate(
-      {nom: req.body.nom},          // Utiliser le nom du Menu envoyé dans le corps de la requête
+      { nom: req.body.nom },          // Utiliser le nom du Menu envoyé dans le corps de la requête
       update,                             // Utiliser les données envoyées dans le corps de la requête
       { new: true, runValidators: true } // Renvoyer le document mis à jour et exécuter les validateurs de schéma
     );
@@ -244,7 +253,7 @@ app.put('/article', async (req, res) => {
     }
 
     // Renvoyer l'article mis à jour
-    res.send({articleMod});
+    res.send({ articleMod });
   } catch (error) {
     console.error(error)
     // En cas d'erreur (par exemple, une validation échouée), renvoyer une erreur 400
@@ -254,14 +263,37 @@ app.put('/article', async (req, res) => {
 
 // Check Database to see if write is OK
 app.get('/AfficherMenu', async (req, res) => {
-	// Fetch all Menus
-  const menus = await Menus.find();
-  res.json(menus);
+  // Fetch all Menus
+  const token = req.headers.authorization.replace("Bearer ", '');
+  const payload = jwt.decode(token)
+  const restauId = payload._id;
+  const userType = payload.type;
+
+  try {
+    if (userType === 'restaurant_owner') {
+      // Vérifier si un article avec l'ID spécifié existe déjà
+
+      // console.log('Id menu est:', existingMenu.idMenu)                      // debug
+      const restau = await client.db('CESI_EAT').collection('Users').findOne(
+        { ID: restauId },
+        { projection: { restaurantName: 1 } }
+      );
+      console.log("RESTAU : ", restau.restaurantName)
+      const menus = await Menus.find({ restaurant: restau.restaurantName });
+      console.log("MENU : ", menus)
+
+      return res.status(201).json(menus);
+    } else {
+      res.status(403).send("Connectez vous en tant que restaurateur");
+    }
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // Check Database to see if write is OK        
 app.get('/AfficherArticles', async (req, res) => {
-	// Fetch all Articles
+  // Fetch all Articles
   const articles = await Articles.find();
   res.json(articles);
 });
@@ -270,8 +302,8 @@ app.get('/AfficherArticles', async (req, res) => {
 app.delete('/menu', async (req, res) => {
   console.log(req.body);
   try {
-    const menuDel = await Menus.findOneAndRemove({nomMenu: req.body.nomMenu});
-    
+    const menuDel = await Menus.findOneAndRemove({ nomMenu: req.body.nomMenu });
+
     // If the menu item with the specified Menu name is not found, return an error
     if (!menuDel) {
       return res.status(404).send('Menu with the given name was not found.');
@@ -289,8 +321,8 @@ app.delete('/menu', async (req, res) => {
 // Route to delete an articles item; TODO: Check under which circumstances this route might be used
 app.delete('/article', async (req, res) => {
   try {
-    const articlesDel = await Articles.findOneAndDelete({nom: req.body.nom});
-    
+    const articlesDel = await Articles.findOneAndDelete({ nom: req.body.nom });
+
     // If the menu item with the specified name is not found, return an error
     if (!articlesDel) {
       return res.status(404).send('Articles item with the given name was not found.');

@@ -14,30 +14,68 @@
 <script>
 import axios from 'axios'
 import MenuList from '../components/MenuList.vue'
+import ArticleList from '../components/ArticleList.vue'
+
 
 export default {
   // Importing the ArticleList and MenuList components to be used in this component.
   components: {
-    MenuList,
+    MenuList
+    // Define articles here
   },
   data() {
     return {
       // Initial state for articles and menus.
-      menus: [],
+      menus: this.fetchMenus(),
+      articles: this.fetchArticles(),
+
     }
   },
-  async created() {
+  async onMounted() {
     // Fetching articles and menus data when the component is created.
-    this.menus = await this.fetchMenus()
+    // // this.menus = await this.fetchMenus()
+    // this.articles = await this.fetchArticles()  
 
-    // this.orders= await this.fetchOrders()    // TODO: à ajouter lors du merge
-    // this.orders= await this.getOrderList()
   },
   methods: {
     async fetchMenus() {
-      return axios.get('http://localhost:3003/AfficherMenu').then(res => res.data)
+      const accessToken = localStorage.getItem('authToken');
+      console.log(accessToken);
+      if (!accessToken) {
+        this.error = 'Please log in to see your menus.';
+        return; // stop execution of the method
+      }
+
+      if (accessToken == null) {
+        this.$router.push("/");
+      }
+
+      try {
+        const response = await axios.get('http://localhost:3003/AfficherMenu', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+        
+        this.menus = response.data;
+        console.log(this.menus[0].nomMenu); // debug
+
+
+      } catch (error) {
+        if (error.response && error.response.status === 403) {
+          alert("Connectez-vous avec un compte restaurateur");
+          this.error = "Vous ne pouvez pas accéder à cette fonctionnalité";
+          console.error(error);
+        } else {
+          console.error(error);
+        }
+      }
     },
 
+
+    async fetchArticles() {
+      return axios.get('http://localhost:3003/AfficherArticles').then(res => res.data)
+    },
 
     async addArticle(article) {
       return axios.post('http://localhost:3003/AjouterArticle', article).then(res => {
@@ -96,13 +134,35 @@ export default {
     },
 
     // Ajouter un menu
-    addMenu(menu) {
-      return axios.post('http://localhost:3003/AjouterMenu', menu).then(res => {
-        this.menus.push(res.data);
-      }).catch(error => {
+    async addMenu(menu) {
+      const accessToken = localStorage.getItem('authToken');
+      console.log(accessToken);
+      if (!accessToken) {
+        this.error = 'Please log in to see your menus.';
+        return; // stop execution of the method
+      }
+
+      if (accessToken == null) {
+        this.$router.push("/");
+        return; // stop execution of the method
+      }
+
+      const token = accessToken.replace("Bearer ", '');
+
+      try {
+        const response = await axios.post('http://localhost:3003/AjouterMenu', menu, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        this.menus.push(response.data);
+        console.log(response.data)
+      } catch (error) {
+        
         console.error(error.response);
-      });
+      }
     },
+
 
     // Remove a menu from the server and update the local state.
     async removeMenu(menu) {
@@ -168,7 +228,8 @@ export default {
   border-radius: 5px;
 }
 
-.dashboard__title, .dashboard__subtitle {
+.dashboard__title,
+.dashboard__subtitle {
   font-weight: bold;
   margin-bottom: 1rem;
 }

@@ -11,9 +11,9 @@
       <select class="registration-dropdown" v-model="type">
         <option value="customer" :selected="type === 'customer'">Customer</option>
         <option value="driver">Driver</option>
-        <option value="restaurant owner">Restaurant</option>
+        <option value="restaurant_owner">Restaurant</option>
       </select>
-      <div v-if="type === 'restaurant owner'">
+      <div v-if="type === 'restaurant_owner'">
         <input class="registration-input" v-model="restaurantName" placeholder="Name of the Restaurant" />
         <input class="registration-input" v-model="cuisineType" placeholder="Type of Cuisine" />
       </div>
@@ -127,9 +127,11 @@
             deliveryAddress: this.deliveryAddress,
             billingAddress: this.billingAddress,
             type: this.type,
+            restaurantName: this.restaurantName, 
+            cuisineType: this.cuisineType, 
           };
 
-          if (this.type === 'restaurant owner') {
+          if (this.type === 'restaurant_owner') {
             user.restaurantName = this.restaurantName;
             user.cuisineType = this.cuisineType;
           }
