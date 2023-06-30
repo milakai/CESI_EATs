@@ -27,14 +27,14 @@ export default {
     return {
       // Initial state for articles and menus.
       menus: this.fetchMenus(),
-      articles: this.fetchArticles(),
+      articles: [],
 
     }
   },
-  async onMounted() {
+  async created() {
     // Fetching articles and menus data when the component is created.
     // // this.menus = await this.fetchMenus()
-    // this.articles = await this.fetchArticles()  
+     this.articles = await this.fetchArticles()  
 
   },
   methods: {
