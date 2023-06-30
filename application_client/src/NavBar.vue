@@ -5,7 +5,7 @@
       <div class="nav-items">
         <a href="/">Home</a>
         <a href="/order-history">Order History</a>
-        <a href="#">Contact</a>
+        <a href="/parrainage">Parrainage</a>
       </div>
       <div class="auth-buttons">
         <router-link to="/login" v-if="!isLogged" class="auth-button">Login</router-link>
