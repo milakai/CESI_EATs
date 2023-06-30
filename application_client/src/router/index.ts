@@ -10,6 +10,7 @@
   import CreateOrder from '../views/CreateOrder.vue'
   import OrderHistory from '../views/OrderHistory.vue'
   import EditOrder from '@/views/EditOrder.vue'
+  import ParrainagePage from "../views/ParrainagePage.vue";
 
 
 
@@ -23,6 +24,11 @@
       path: '/login',
       name: 'UserLogin',
       component: UserLogin
+    },
+    {
+      path: '/parrainage',
+      name: 'ParrainagePage',
+      component: ParrainagePage
     },
     {
       path: '/create-order/:restaurant',

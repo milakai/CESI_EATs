@@ -4,8 +4,6 @@
       <a href="/" class="logo">Cesi Eat</a>
       <div class="nav-items">
         <a href="/">Home</a>
-        <a href="/orders">Orders</a>
-        <a href="#">Contact</a>
       </div>
       <div class="auth-buttons">
         <router-link to="/login" v-if="!isLogged" class="auth-button">Login</router-link>
